@@ -181,7 +181,7 @@ export default function TicketsPage() {
                           {ticket.title}
                         </p>
                         {isOverdueSla && (
-                          <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" title="SLA dépassé" />
+                          <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
