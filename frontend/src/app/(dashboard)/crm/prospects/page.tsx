@@ -232,7 +232,7 @@ export default function ProspectsPage() {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            await createMutation.mutateAsync(newProspect);
+            await createMutation.mutateAsync(newProspect as any);
             setShowModal(false);
             setNewProspect({ companyName: '', email: '', phone: '', estimatedBudget: 0, source: 'OTHER' });
           }}
