@@ -15,9 +15,15 @@ export default function DashboardLayout({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [hydrated, setHydrated] = useState(false);
 
-  // Wait for Zustand persist to hydrate from localStorage before checking auth
+  // Use Zustand's own hydration callback — more reliable than a plain
+  // useEffect because Zustand persist reads localStorage asynchronously.
   useEffect(() => {
-    setHydrated(true);
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    return unsub;
   }, []);
 
   useEffect(() => {
@@ -26,8 +32,7 @@ export default function DashboardLayout({
     }
   }, [hydrated, isAuthenticated, router]);
 
-  if (!hydrated) return null;
-  if (!isAuthenticated) return null;
+  if (!hydrated || !isAuthenticated) return null;
 
   return (
     <div className="flex min-h-screen">
