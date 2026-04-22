@@ -9,7 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, IsNull } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User, UserStatus } from '../users/entities/user.entity';
@@ -137,14 +137,14 @@ export class AuthService {
   async logout(userId: string, refreshToken: string): Promise<void> {
     const tokenHash = this.hashToken(refreshToken);
     await this.refreshTokenRepo.update(
-      { tokenHash, userId, revokedAt: null },
+      { tokenHash, userId, revokedAt: IsNull() as any },
       { revokedAt: new Date() },
     );
   }
 
   async logoutAll(userId: string): Promise<void> {
     await this.refreshTokenRepo.update(
-      { userId, revokedAt: null },
+      { userId, revokedAt: IsNull() as any },
       { revokedAt: new Date() },
     );
   }

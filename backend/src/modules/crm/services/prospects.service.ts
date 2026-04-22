@@ -144,7 +144,7 @@ export class ProspectsService {
         where: { prospectId: prospect.id },
       });
       for (const c of contacts) {
-        c.prospectId = null;
+        c.prospectId = undefined;
         c.customerId = savedCustomer.id;
       }
       if (contacts.length) await manager.save(Contact, contacts);

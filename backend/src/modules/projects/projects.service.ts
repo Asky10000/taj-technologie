@@ -31,11 +31,12 @@ import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { Role } from '../auth/enums/role.enum';
 
 const PROJECT_STATUS_TRANSITIONS: Record<ProjectStatus, ProjectStatus[]> = {
-  [ProjectStatus.DRAFT]:     [ProjectStatus.ACTIVE, ProjectStatus.CANCELLED],
-  [ProjectStatus.ACTIVE]:    [ProjectStatus.ON_HOLD, ProjectStatus.COMPLETED, ProjectStatus.CANCELLED],
-  [ProjectStatus.ON_HOLD]:   [ProjectStatus.ACTIVE, ProjectStatus.CANCELLED],
-  [ProjectStatus.COMPLETED]: [],
-  [ProjectStatus.CANCELLED]: [],
+  [ProjectStatus.DRAFT]:       [ProjectStatus.IN_PROGRESS, ProjectStatus.PLANNED, ProjectStatus.CANCELLED],
+  [ProjectStatus.PLANNED]:     [ProjectStatus.IN_PROGRESS, ProjectStatus.CANCELLED],
+  [ProjectStatus.IN_PROGRESS]: [ProjectStatus.ON_HOLD, ProjectStatus.COMPLETED, ProjectStatus.CANCELLED],
+  [ProjectStatus.ON_HOLD]:     [ProjectStatus.IN_PROGRESS, ProjectStatus.CANCELLED],
+  [ProjectStatus.COMPLETED]:   [],
+  [ProjectStatus.CANCELLED]:   [],
 };
 
 @Injectable()
@@ -62,7 +63,7 @@ export class ProjectsService {
     const project = this.projectRepo.create({
       ...dto,
       tags: dto.tags ?? [],
-      managerId: dto.managerId ?? currentUser.sub,
+      managerId: dto.managerId ?? currentUser.id,
     });
     const saved = await this.projectRepo.save(project);
     this.logger.log(`Projet créé : ${saved.code} — ${saved.name}`);
@@ -113,7 +114,7 @@ export class ProjectsService {
       );
     }
     project.status = dto.status;
-    if (dto.status === ProjectStatus.ACTIVE && !project.actualStartDate) {
+    if (dto.status === ProjectStatus.IN_PROGRESS && !project.actualStartDate) {
       project.actualStartDate = new Date() as any;
     }
     if (dto.status === ProjectStatus.COMPLETED && !project.actualEndDate) {
@@ -130,7 +131,7 @@ export class ProjectsService {
 
   async remove(id: string): Promise<void> {
     const project = await this.findOne(id);
-    if (project.status === ProjectStatus.ACTIVE) {
+    if (project.status === ProjectStatus.IN_PROGRESS) {
       throw new BadRequestException(
         'Impossible de supprimer un projet actif. Annulez-le d\'abord.',
       );
@@ -261,7 +262,7 @@ export class ProjectsService {
 
     // Récupère le taux horaire du membre ou 0
     const member = await this.memberRepo.findOne({
-      where: { projectId, userId: currentUser.sub },
+      where: { projectId, userId: currentUser.id },
     });
 
     const hourlyRate = member?.hourlyRate ?? 0;
@@ -276,7 +277,7 @@ export class ProjectsService {
     const entry = this.timeEntryRepo.create({
       ...dto,
       projectId,
-      userId: currentUser.sub,
+      userId: currentUser.id,
       hourlyRate,
     });
     const saved = await this.timeEntryRepo.save(entry);
@@ -313,7 +314,7 @@ export class ProjectsService {
     const isAdmin = [Role.ADMIN, Role.SUPER_ADMIN, Role.MANAGER].includes(
       currentUser.role as Role,
     );
-    if (entry.userId !== currentUser.sub && !isAdmin) {
+    if (entry.userId !== currentUser.id && !isAdmin) {
       throw new ForbiddenException('Vous ne pouvez modifier que vos propres saisies');
     }
 
@@ -343,7 +344,7 @@ export class ProjectsService {
     const isAdmin = [Role.ADMIN, Role.SUPER_ADMIN, Role.MANAGER].includes(
       currentUser.role as Role,
     );
-    if (entry.userId !== currentUser.sub && !isAdmin) {
+    if (entry.userId !== currentUser.id && !isAdmin) {
       throw new ForbiddenException('Vous ne pouvez supprimer que vos propres saisies');
     }
 
@@ -383,7 +384,7 @@ export class ProjectsService {
       totalBudget: Math.round(totalBudget * 100) / 100,
       totalActualCost: Math.round(totalActualCost * 100) / 100,
       overBudgetCount,
-      activeCount: byStatus[ProjectStatus.ACTIVE] ?? 0,
+      activeCount: byStatus[ProjectStatus.IN_PROGRESS] ?? 0,
     };
   }
 

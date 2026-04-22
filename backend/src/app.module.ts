@@ -33,8 +33,8 @@ import { ReportsModule } from './modules/reports/reports.module';
       useFactory: (configService: ConfigService) => ({
         throttlers: [
           {
-            ttl: configService.get<number>('throttler.ttl') * 1000,
-            limit: configService.get<number>('throttler.limit'),
+            ttl: (configService.get<number>('throttler.ttl') ?? 60) * 1000,
+            limit: configService.get<number>('throttler.limit') ?? 100,
           },
         ],
       }),

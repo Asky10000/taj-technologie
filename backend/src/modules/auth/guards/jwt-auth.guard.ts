@@ -22,7 +22,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: unknown, user: unknown, info: unknown) {
+  handleRequest(err: unknown, user: unknown, info: unknown): any {
     if (err || !user) {
       const message =
         (info as Error)?.message || 'Authentification requise ou token invalide';

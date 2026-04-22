@@ -1,11 +1,11 @@
-import { SelectQueryBuilder } from 'typeorm';
+import { SelectQueryBuilder, ObjectLiteral } from 'typeorm';
 import { PaginationDto } from '../dto/pagination.dto';
 import { PaginatedResult } from '../interfaces/paginated-result.interface';
 
 /**
  * Applique un QueryBuilder TypeORM et retourne un résultat paginé standardisé.
  */
-export async function paginate<T>(
+export async function paginate<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   pagination: PaginationDto,
 ): Promise<PaginatedResult<T>> {

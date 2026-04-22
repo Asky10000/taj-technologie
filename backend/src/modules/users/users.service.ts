@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Brackets } from 'typeorm';
+import { Repository, Brackets, IsNull } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from './entities/user.entity';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
@@ -138,7 +138,7 @@ export class UsersService {
     const saved = await this.userRepo.save(user);
     // Invalide les sessions pour que le nouveau rôle soit pris en compte
     await this.refreshTokenRepo.update(
-      { userId: id, revokedAt: null },
+      { userId: id, revokedAt: IsNull() as any },
       { revokedAt: new Date() },
     );
     this.logger.log(`Rôle de ${id} changé en ${role} par ${requester.id}`);
@@ -161,7 +161,7 @@ export class UsersService {
 
     if (status !== UserStatus.ACTIVE) {
       await this.refreshTokenRepo.update(
-        { userId: id, revokedAt: null },
+        { userId: id, revokedAt: IsNull() as any },
         { revokedAt: new Date() },
       );
     }
@@ -182,7 +182,7 @@ export class UsersService {
     const passwordHash = await bcrypt.hash(newPassword, this.saltRounds);
     await this.userRepo.update(id, { passwordHash });
     await this.refreshTokenRepo.update(
-      { userId: id, revokedAt: null },
+      { userId: id, revokedAt: IsNull() as any },
       { revokedAt: new Date() },
     );
     this.logger.log(`Mot de passe réinitialisé pour ${id} par ${requester.id}`);
@@ -199,7 +199,7 @@ export class UsersService {
     this.ensureCanManage(requester.role, user.role);
 
     await this.refreshTokenRepo.update(
-      { userId: id, revokedAt: null },
+      { userId: id, revokedAt: IsNull() as any },
       { revokedAt: new Date() },
     );
     await this.userRepo.softRemove(user);

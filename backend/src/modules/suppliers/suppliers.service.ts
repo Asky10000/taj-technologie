@@ -159,7 +159,7 @@ export class SuppliersService {
 
     const po = this.poRepo.create({
       supplierId: dto.supplierId,
-      createdById: currentUser.sub,
+      createdById: currentUser.id,
       expectedDeliveryDate: dto.expectedDeliveryDate as any,
       supplierReference: dto.supplierReference,
       shippingCost: dto.shippingCost ?? 0,
@@ -299,7 +299,7 @@ export class SuppliersService {
           // Chercher ou créer un stock pour ce produit
           const stock = await this.inventoryService.findOrCreateStock(
             line.productId,
-            currentUser.sub,
+            currentUser.id,
           );
 
           await this.inventoryService.addMovement(
@@ -313,7 +313,7 @@ export class SuppliersService {
               referenceType: 'PurchaseOrder',
               referenceId: po.id,
             },
-            currentUser.sub,
+            currentUser.id,
           );
         }
       }

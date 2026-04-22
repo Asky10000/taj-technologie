@@ -18,8 +18,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status: number;
-    let message: string | object;
-    let error: string;
+    let message: string | object = 'Internal server error';
+    let error: string = 'Error';
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();

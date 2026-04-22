@@ -269,7 +269,7 @@ export class InventoryService {
       where: {},
     });
 
-    const result = { outOfStock: [], critical: [], warning: [] };
+    const result: { outOfStock: Stock[]; critical: Stock[]; warning: Stock[] } = { outOfStock: [], critical: [], warning: [] };
     for (const s of stocks) {
       const level = s.alertLevel;
       if (level === StockAlertLevel.OUT) result.outOfStock.push(s);

@@ -59,7 +59,7 @@ export class OrdersService {
           discountType: l.discountType ?? 'PERCENT',
           discountValue: l.discountValue ?? 0,
           taxRate: l.taxRate ?? 20,
-        }),
+        } as any),
       );
       await manager.save(lines);
 
@@ -141,7 +141,7 @@ export class OrdersService {
             discountType: l.discountType ?? 'PERCENT',
             discountValue: l.discountValue ?? 0,
             taxRate: l.taxRate ?? 20,
-          }),
+          } as any),
         );
         await manager.save(lines);
       }
