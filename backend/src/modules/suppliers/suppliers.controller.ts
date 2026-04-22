@@ -167,6 +167,6 @@ export class SuppliersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: PaginationDto,
   ) {
-    return this.suppliersService.findAllPurchaseOrders({ ...query, supplierId: id });
+    return this.suppliersService.findAllPurchaseOrders({ ...query, supplierId: id } as any);
   }
 }
