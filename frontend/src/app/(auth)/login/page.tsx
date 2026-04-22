@@ -34,7 +34,7 @@ export default function LoginPage() {
     try {
       await login(data.email, data.password);
       toast.success('Connexion réussie');
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: any) {
       const message =
         err?.response?.data?.message ?? 'Identifiants incorrects';
