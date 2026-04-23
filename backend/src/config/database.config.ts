@@ -12,7 +12,8 @@ export default registerAs(
     database: process.env.DB_NAME || 'taj_erp',
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-    synchronize: process.env.DB_SYNCHRONIZE === 'true',
+    // Default true so Railway creates tables on first deploy; set DB_SYNCHRONIZE=false to opt out
+    synchronize: process.env.DB_SYNCHRONIZE !== 'false',
     logging: process.env.DB_LOGGING === 'true',
     ssl:
       process.env.NODE_ENV === 'production'

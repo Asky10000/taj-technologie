@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DataSource } from 'typeorm';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
@@ -8,6 +9,7 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { globalValidationPipe } from './common/pipes/validation.pipe';
+import { AdminUserSeeder } from './database/seeders/admin-user.seeder';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -77,6 +79,14 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
+  }
+
+  // Auto-seed: ensure a SUPER_ADMIN user exists on every startup
+  try {
+    const dataSource = app.get(DataSource);
+    await new AdminUserSeeder().run(dataSource);
+  } catch (e) {
+    console.warn('Seeder skipped:', (e as Error).message);
   }
 
   await app.listen(port);

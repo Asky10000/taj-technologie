@@ -22,7 +22,13 @@ export class AdminUserSeeder implements ISeeder {
 
     const existing = await repo.findOne({ where: { email } });
     if (existing) {
-      console.log(`      (info) admin ${email} existe déjà — ignoré`);
+      // Upgrade to SUPER_ADMIN if role is insufficient
+      if (existing.role !== Role.SUPER_ADMIN && existing.role !== Role.ADMIN) {
+        await repo.update(existing.id, { role: Role.SUPER_ADMIN });
+        console.log(`      → Rôle de ${email} mis à jour : ${existing.role} → SUPER_ADMIN`);
+      } else {
+        console.log(`      (info) admin ${email} existe déjà (${existing.role}) — ignoré`);
+      }
       return;
     }
 
