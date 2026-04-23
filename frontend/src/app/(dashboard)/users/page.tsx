@@ -123,7 +123,7 @@ export default function UsersPage() {
             <div className="divide-y divide-border">
               {data.items.map((user) => {
                 const rc  = ROLE_CONFIG[user.role];
-                const isMe = user.id === me?.sub;
+                const isMe = user.id === me?.id;
                 const manageable = canManage(user) && !isMe;
                 return (
                   <div key={user.id} className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">

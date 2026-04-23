@@ -38,11 +38,12 @@ export type Role =
   | 'USER';
 
 export interface AuthUser {
-  sub: string;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: Role;
+  status: string;
 }
 
 export interface TokenPair {
@@ -51,8 +52,9 @@ export interface TokenPair {
   expiresIn: number;
 }
 
-export interface LoginResponse extends TokenPair {
+export interface LoginResponse {
   user: AuthUser;
+  tokens: TokenPair;
 }
 
 // ── Dashboard KPIs ──────────────────────────────────────────────

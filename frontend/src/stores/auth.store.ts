@@ -27,8 +27,8 @@ export const useAuthStore = create<AuthState>()(
             email,
             password,
           });
-          const { accessToken, refreshToken, user } = data.data;
-          tokenStorage.setTokens({ accessToken, refreshToken });
+          const { tokens, user } = data.data;
+          tokenStorage.setTokens({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
           // Cookie lisible par le middleware Next.js pour protéger les routes
           document.cookie = 'taj_session=1; path=/; max-age=604800; SameSite=Lax';
           set({ user, isAuthenticated: true });

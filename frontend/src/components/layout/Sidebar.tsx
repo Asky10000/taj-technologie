@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Building2, Package, Warehouse, FileText,
+  LayoutDashboard, Users, Building2, Warehouse, FileText,
   Ticket, FolderKanban, Truck, BarChart3, Settings, Monitor, ChevronRight,
   LogOut,
 } from 'lucide-react';
@@ -20,16 +20,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Tableau de bord', href: '/dashboard',          icon: LayoutDashboard },
-  { label: 'CRM',              href: '/dashboard/crm',      icon: Building2 },
-  { label: 'Produits',         href: '/dashboard/products', icon: Package },
-  { label: 'Inventaire',       href: '/dashboard/inventory',icon: Warehouse },
-  { label: 'Ventes',           href: '/dashboard/sales',    icon: FileText },
-  { label: 'Fournisseurs',     href: '/dashboard/suppliers',icon: Truck },
-  { label: 'Tickets',          href: '/dashboard/tickets',  icon: Ticket },
-  { label: 'Projets',          href: '/dashboard/projects', icon: FolderKanban },
-  { label: 'Utilisateurs',     href: '/dashboard/users',    icon: Users,    roles: ['SUPER_ADMIN','ADMIN'] },
-  { label: 'Rapports',         href: '/dashboard/reports',  icon: BarChart3, roles: ['SUPER_ADMIN','ADMIN','MANAGER','ACCOUNTANT'] },
+  { label: 'Tableau de bord', href: '/',          icon: LayoutDashboard },
+  { label: 'CRM',              href: '/crm',      icon: Building2 },
+  { label: 'Inventaire',       href: '/inventory',icon: Warehouse },
+  { label: 'Ventes',           href: '/sales',    icon: FileText },
+  { label: 'Fournisseurs',     href: '/suppliers',icon: Truck },
+  { label: 'Tickets',          href: '/tickets',  icon: Ticket },
+  { label: 'Projets',          href: '/projects', icon: FolderKanban },
+  { label: 'Utilisateurs',     href: '/users',    icon: Users,    roles: ['SUPER_ADMIN','ADMIN'] },
+  { label: 'Rapports',         href: '/reports',  icon: BarChart3, roles: ['SUPER_ADMIN','ADMIN','MANAGER','ACCOUNTANT'] },
 ];
 
 export function Sidebar() {
@@ -60,8 +59,8 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
         {visibleItems.map((item) => {
           const isActive =
-            item.href === '/dashboard'
-              ? pathname === '/dashboard'
+            item.href === '/'
+              ? pathname === '/'
               : pathname.startsWith(item.href);
 
           return (

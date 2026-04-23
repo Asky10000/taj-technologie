@@ -78,6 +78,8 @@ api.interceptors.response.use(
       const refreshToken = tokenStorage.getRefresh();
       if (!refreshToken) {
         tokenStorage.clearTokens();
+        localStorage.removeItem('taj_auth');
+        document.cookie = 'taj_session=; path=/; max-age=0; SameSite=Lax';
         window.location.href = '/login';
         return Promise.reject(error);
       }
@@ -96,6 +98,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         tokenStorage.clearTokens();
+        localStorage.removeItem('taj_auth');
+        document.cookie = 'taj_session=; path=/; max-age=0; SameSite=Lax';
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
