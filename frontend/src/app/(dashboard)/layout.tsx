@@ -13,26 +13,28 @@ export default function DashboardLayout({
 }) {
   const router          = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [hydrated, setHydrated] = useState(false);
+  const [ready, setReady]       = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
-  // Use Zustand's own hydration callback — more reliable than a plain
-  // useEffect because Zustand persist reads localStorage asynchronously.
   useEffect(() => {
-    if (useAuthStore.persist.hasHydrated()) {
-      setHydrated(true);
-      return;
-    }
-    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
-    return unsub;
+    // localStorage is synchronous — always available after mount,
+    // no Zustand hydration timing issues.
+    const token = localStorage.getItem('taj_access_token');
+    setHasToken(!!token);
+    setReady(true);
   }, []);
 
+  // Redirect only when both the token and Zustand state are gone (true logout).
   useEffect(() => {
-    if (hydrated && !isAuthenticated) {
+    if (!ready) return;
+    const token = localStorage.getItem('taj_access_token');
+    if (!isAuthenticated && !token) {
       router.replace('/login');
     }
-  }, [hydrated, isAuthenticated, router]);
+  }, [ready, isAuthenticated, router]);
 
-  if (!hydrated || !isAuthenticated) return null;
+  if (!ready) return null;
+  if (!hasToken && !isAuthenticated) return null;
 
   return (
     <div className="flex min-h-screen">
