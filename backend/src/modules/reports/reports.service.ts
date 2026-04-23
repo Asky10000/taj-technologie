@@ -127,7 +127,7 @@ export class ReportsService {
                COALESCE(SUM(total_ttc - paid_amount), 0) AS amount
         FROM invoices
         WHERE deleted_at IS NULL
-          AND status IN ('PENDING','PARTIALLY_PAID')
+          AND status IN ('SENT','PARTIALLY_PAID')
       `),
 
       // Factures en retard
@@ -153,7 +153,7 @@ export class ReportsService {
       this.dataSource.query<{ total: string; active: string }[]>(`
         SELECT
           COUNT(*) AS total,
-          COUNT(*) FILTER (WHERE status NOT IN ('CONVERTED','LOST')) AS active
+          COUNT(*) FILTER (WHERE status NOT IN ('WON','LOST')) AS active
         FROM prospects WHERE deleted_at IS NULL
       `),
 
@@ -279,8 +279,8 @@ export class ReportsService {
       this.dataSource.query<{ period: string; ht: string; ttc: string; cnt: string }[]>(`
         SELECT
           DATE_TRUNC('${trunc}', i.created_at)::date::text AS period,
-          COALESCE(SUM(l.quantity * l.unit_price * (1 - l.discount_percent/100)), 0) AS ht,
-          COALESCE(SUM(l.quantity * l.unit_price * (1 - l.discount_percent/100) * (1 + l.tax_rate/100)), 0) AS ttc,
+          COALESCE(SUM(CASE WHEN l.discount_type = 'PERCENT' THEN l.quantity * l.unit_price * (1 - l.discount_value/100) ELSE l.quantity * l.unit_price - l.discount_value END), 0) AS ht,
+          COALESCE(SUM(CASE WHEN l.discount_type = 'PERCENT' THEN l.quantity * l.unit_price * (1 - l.discount_value/100) * (1 + l.tax_rate/100) ELSE (l.quantity * l.unit_price - l.discount_value) * (1 + l.tax_rate/100) END), 0) AS ttc,
           COUNT(DISTINCT i.id) AS cnt
         FROM invoices i
         JOIN sale_lines l ON l.invoice_id = i.id
@@ -295,7 +295,7 @@ export class ReportsService {
       this.dataSource.query<{ type: string; ht: string; qty: string }[]>(`
         SELECT
           p.type,
-          COALESCE(SUM(l.quantity * l.unit_price * (1 - l.discount_percent/100)), 0) AS ht,
+          COALESCE(SUM(CASE WHEN l.discount_type = 'PERCENT' THEN l.quantity * l.unit_price * (1 - l.discount_value/100) ELSE l.quantity * l.unit_price - l.discount_value END), 0) AS ht,
           COALESCE(SUM(l.quantity), 0) AS qty
         FROM invoices i
         JOIN sale_lines l ON l.invoice_id = i.id
@@ -312,7 +312,7 @@ export class ReportsService {
         SELECT
           c.id AS customer_id,
           c.company_name AS name,
-          COALESCE(SUM(l.quantity * l.unit_price * (1 - l.discount_percent/100)), 0) AS ht,
+          COALESCE(SUM(CASE WHEN l.discount_type = 'PERCENT' THEN l.quantity * l.unit_price * (1 - l.discount_value/100) ELSE l.quantity * l.unit_price - l.discount_value END), 0) AS ht,
           COUNT(DISTINCT i.id) AS cnt
         FROM invoices i
         JOIN customers c ON c.id = i.customer_id
@@ -332,7 +332,7 @@ export class ReportsService {
           p.sku,
           p.name,
           COALESCE(SUM(l.quantity), 0) AS qty,
-          COALESCE(SUM(l.quantity * l.unit_price * (1 - l.discount_percent/100)), 0) AS ht
+          COALESCE(SUM(CASE WHEN l.discount_type = 'PERCENT' THEN l.quantity * l.unit_price * (1 - l.discount_value/100) ELSE l.quantity * l.unit_price - l.discount_value END), 0) AS ht
         FROM invoices i
         JOIN sale_lines l ON l.invoice_id = i.id
         JOIN products p ON p.id = l.product_id
