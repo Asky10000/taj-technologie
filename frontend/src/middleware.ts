@@ -11,8 +11,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Vérification côté serveur simplifiée via cookie (le token est en localStorage côté client)
-  // La redirection fine est gérée dans le DashboardLayout côté client
+  // Vérifie le cookie de session (posé après login côté client)
+  const session = request.cookies.get('taj_session');
+  if (!session) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   return NextResponse.next();
 }
 

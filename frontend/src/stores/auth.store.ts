@@ -29,6 +29,8 @@ export const useAuthStore = create<AuthState>()(
           });
           const { accessToken, refreshToken, user } = data.data;
           tokenStorage.setTokens({ accessToken, refreshToken });
+          // Cookie lisible par le middleware Next.js pour protéger les routes
+          document.cookie = 'taj_session=1; path=/; max-age=604800; SameSite=Lax';
           set({ user, isAuthenticated: true });
         } finally {
           set({ isLoading: false });
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } finally {
           tokenStorage.clearTokens();
+          document.cookie = 'taj_session=; path=/; max-age=0; SameSite=Lax';
           set({ user: null, isAuthenticated: false });
         }
       },
