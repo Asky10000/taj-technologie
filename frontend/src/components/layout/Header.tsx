@@ -6,17 +6,16 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const ROUTE_LABELS: Record<string, string> = {
-  '/dashboard':            'Tableau de bord',
-  '/dashboard/crm':        'CRM',
-  '/dashboard/products':   'Produits',
-  '/dashboard/inventory':  'Inventaire',
-  '/dashboard/sales':      'Ventes',
-  '/dashboard/suppliers':  'Fournisseurs',
-  '/dashboard/tickets':    'Tickets',
-  '/dashboard/projects':   'Projets',
-  '/dashboard/users':      'Utilisateurs',
-  '/dashboard/reports':    'Rapports',
-  '/dashboard/settings':   'Paramètres',
+  '/':           'Tableau de bord',
+  '/crm':        'CRM',
+  '/inventory':  'Inventaire',
+  '/sales':      'Ventes',
+  '/suppliers':  'Fournisseurs',
+  '/tickets':    'Tickets',
+  '/projects':   'Projets',
+  '/users':      'Utilisateurs',
+  '/reports':    'Rapports',
+  '/settings':   'Paramètres',
 };
 
 export function Header() {
