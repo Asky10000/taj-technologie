@@ -117,7 +117,7 @@ export default function CustomersPage() {
               {data.items.map((customer) => (
                 <Link
                   key={customer.id}
-                  href={`/dashboard/crm/${customer.id}`}
+                  href={`/crm/${customer.id}`}
                   className="grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/50 transition-colors group"
                 >
                   {/* Icône */}

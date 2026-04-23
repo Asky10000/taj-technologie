@@ -89,7 +89,7 @@ export default function InvoicesPage() {
                   )}>
                     <div className="flex items-center gap-2">
                       {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
-                      <Link href={`/dashboard/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">
+                      <Link href={`/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">
                         {invoice.code}
                       </Link>
                     </div>

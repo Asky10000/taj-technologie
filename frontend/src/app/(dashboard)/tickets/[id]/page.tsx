@@ -79,7 +79,7 @@ export default function TicketDetailPage() {
       {/* Navigation */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/tickets" className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors flex-shrink-0">
+          <Link href="/tickets" className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>

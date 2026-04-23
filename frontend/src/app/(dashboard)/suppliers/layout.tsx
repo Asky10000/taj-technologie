@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { label: 'Fournisseurs', href: '/dashboard/suppliers' },
-  { label: 'Bons de commande', href: '/dashboard/suppliers/orders' },
+  { label: 'Fournisseurs', href: '/suppliers' },
+  { label: 'Bons de commande', href: '/suppliers/orders' },
 ];
 
 export default function SuppliersLayout({ children }: { children: React.ReactNode }) {

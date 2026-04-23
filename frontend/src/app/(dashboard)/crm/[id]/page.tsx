@@ -62,7 +62,7 @@ export default function CustomerDetailPage() {
   const handleDelete = async () => {
     if (!confirm(`Supprimer le client "${customer?.companyName}" ?`)) return;
     await deleteMutation.mutateAsync(id);
-    router.push('/dashboard/crm');
+    router.push('/crm');
   };
 
   if (isLoading) {
@@ -81,7 +81,7 @@ export default function CustomerDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/crm"
+            href="/crm"
             className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -270,9 +270,9 @@ export default function CustomerDetailPage() {
           <div className="bg-card border rounded-xl p-5 space-y-2">
             <h3 className="text-sm font-semibold text-foreground mb-3">Accès rapide</h3>
             {[
-              { label: 'Voir les devis',    href: `/dashboard/sales?customerId=${id}&tab=quotes` },
-              { label: 'Voir les factures', href: `/dashboard/sales?customerId=${id}&tab=invoices` },
-              { label: 'Voir les tickets',  href: `/dashboard/tickets?customerId=${id}` },
+              { label: 'Voir les devis',    href: `/sales?customerId=${id}&tab=quotes` },
+              { label: 'Voir les factures', href: `/sales?customerId=${id}&tab=invoices` },
+              { label: 'Voir les tickets',  href: `/tickets?customerId=${id}` },
             ].map((link) => (
               <Link
                 key={link.label}

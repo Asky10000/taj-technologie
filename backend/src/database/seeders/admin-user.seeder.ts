@@ -15,7 +15,7 @@ export class AdminUserSeeder implements ISeeder {
 
   async run(dataSource: DataSource): Promise<void> {
     const repo = dataSource.getRepository(User);
-    const email = (process.env.SEED_ADMIN_EMAIL || 'admin@taj-tech.com')
+    const email = (process.env.SEED_ADMIN_EMAIL || 'admin@taj.com')
       .toLowerCase()
       .trim();
     const password = process.env.SEED_ADMIN_PASSWORD || 'Admin@2024';

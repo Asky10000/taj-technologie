@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { label: 'Stocks',     href: '/dashboard/inventory' },
-  { label: 'Mouvements', href: '/dashboard/inventory/movements' },
+  { label: 'Stocks',     href: '/inventory' },
+  { label: 'Mouvements', href: '/inventory/movements' },
 ];
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {

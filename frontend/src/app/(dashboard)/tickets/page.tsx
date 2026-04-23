@@ -163,7 +163,7 @@ export default function TicketsPage() {
                 return (
                   <Link
                     key={ticket.id}
-                    href={`/dashboard/tickets/${ticket.id}`}
+                    href={`/tickets/${ticket.id}`}
                     className="grid grid-cols-[8px_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/50 transition-colors group"
                   >
                     {/* Bande priorité */}

@@ -112,7 +112,7 @@ export default function ProjectsPage() {
               return (
                 <Link
                   key={project.id}
-                  href={`/dashboard/projects/${project.id}`}
+                  href={`/projects/${project.id}`}
                   className="bg-card border rounded-xl p-5 space-y-4 hover:shadow-md hover:border-primary/30 transition-all group"
                 >
                   {/* En-tête */}

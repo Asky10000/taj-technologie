@@ -98,7 +98,7 @@ export default function ProjectDetailPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/projects" className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors flex-shrink-0">
+          <Link href="/projects" className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>

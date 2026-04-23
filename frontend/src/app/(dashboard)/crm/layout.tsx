@@ -5,16 +5,16 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { label: 'Clients',   href: '/dashboard/crm' },
-  { label: 'Prospects', href: '/dashboard/crm/prospects' },
+  { label: 'Clients',   href: '/crm' },
+  { label: 'Prospects', href: '/crm/prospects' },
 ];
 
 export default function CrmLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const isTab = (href: string) =>
-    href === '/dashboard/crm'
-      ? pathname === '/dashboard/crm'
+    href === '/crm'
+      ? pathname === '/crm'
       : pathname.startsWith(href);
 
   // Pas de tabs sur la fiche client

@@ -5,17 +5,17 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { label: 'Devis',      href: '/dashboard/sales' },
-  { label: 'Commandes',  href: '/dashboard/sales/orders' },
-  { label: 'Factures',   href: '/dashboard/sales/invoices' },
+  { label: 'Devis',      href: '/sales' },
+  { label: 'Commandes',  href: '/sales/orders' },
+  { label: 'Factures',   href: '/sales/invoices' },
 ];
 
 export default function SalesLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const isTab = (href: string) =>
-    href === '/dashboard/sales'
-      ? pathname === '/dashboard/sales'
+    href === '/sales'
+      ? pathname === '/sales'
       : pathname.startsWith(href);
 
   const showTabs = !pathname.match(/\/sales\/(quotes|orders|invoices)\/[^/]+$/);

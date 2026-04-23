@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { label: 'Vue d\'ensemble', href: '/dashboard/reports' },
-  { label: 'Ventes',          href: '/dashboard/reports/sales' },
-  { label: 'Finances',        href: '/dashboard/reports/financial' },
-  { label: 'Inventaire',      href: '/dashboard/reports/inventory' },
+  { label: 'Vue d\'ensemble', href: '/reports' },
+  { label: 'Ventes',          href: '/reports/sales' },
+  { label: 'Finances',        href: '/reports/financial' },
+  { label: 'Inventaire',      href: '/reports/inventory' },
 ];
 
 export default function ReportsLayout({ children }: { children: React.ReactNode }) {

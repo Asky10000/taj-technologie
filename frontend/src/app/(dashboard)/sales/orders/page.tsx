@@ -96,7 +96,7 @@ export default function OrdersPage() {
                 const isDelivered = order.status === 'DELIVERED';
                 return (
                   <div key={order.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
-                    <Link href={`/dashboard/sales/orders/${order.id}`} className="text-sm font-medium text-primary hover:underline">
+                    <Link href={`/sales/orders/${order.id}`} className="text-sm font-medium text-primary hover:underline">
                       {order.code}
                     </Link>
                     <div>
