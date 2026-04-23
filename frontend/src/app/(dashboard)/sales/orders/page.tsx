@@ -12,25 +12,29 @@ import { formatCurrency, formatDate, formatRelativeTime, cn } from '@/lib/utils'
 import type { OrderStatus } from '@/types/sales.types';
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; variant: 'default' | 'info' | 'success' | 'danger' | 'warning' | 'outline' }> = {
-  CONFIRMED:      { label: 'Confirmée',      variant: 'info' },
-  IN_PREPARATION: { label: 'En préparation', variant: 'warning' },
-  SHIPPED:        { label: 'Expédiée',       variant: 'info' },
-  DELIVERED:      { label: 'Livrée',         variant: 'success' },
-  CANCELLED:      { label: 'Annulée',        variant: 'default' },
+  PENDING:             { label: 'En attente',    variant: 'outline' },
+  CONFIRMED:           { label: 'Confirmée',     variant: 'info' },
+  PROCESSING:          { label: 'En traitement', variant: 'warning' },
+  PARTIALLY_DELIVERED: { label: 'Part. livrée',  variant: 'warning' },
+  DELIVERED:           { label: 'Livrée',        variant: 'success' },
+  INVOICED:            { label: 'Facturée',      variant: 'success' },
+  CANCELLED:           { label: 'Annulée',       variant: 'default' },
 };
 
 const STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus | null> = {
-  CONFIRMED:      'IN_PREPARATION',
-  IN_PREPARATION: 'SHIPPED',
-  SHIPPED:        'DELIVERED',
-  DELIVERED:      null,
-  CANCELLED:      null,
+  PENDING:             'CONFIRMED',
+  CONFIRMED:           'PROCESSING',
+  PROCESSING:          'DELIVERED',
+  PARTIALLY_DELIVERED: 'DELIVERED',
+  DELIVERED:           null,
+  INVOICED:            null,
+  CANCELLED:           null,
 };
 
 const TRANSITION_LABELS: Partial<Record<OrderStatus, string>> = {
-  IN_PREPARATION: 'En préparation',
-  SHIPPED:        'Expédier',
-  DELIVERED:      'Marquer livré',
+  CONFIRMED:  'Confirmer',
+  PROCESSING: 'En traitement',
+  DELIVERED:  'Marquer livré',
 };
 
 export default function OrdersPage() {
@@ -44,9 +48,9 @@ export default function OrdersPage() {
 
   const FILTER_OPTIONS: { label: string; value: OrderStatus | '' }[] = [
     { label: 'Toutes',          value: '' },
+    { label: 'En attente',      value: 'PENDING' },
     { label: 'Confirmées',      value: 'CONFIRMED' },
-    { label: 'En préparation',  value: 'IN_PREPARATION' },
-    { label: 'Expédiées',       value: 'SHIPPED' },
+    { label: 'En traitement',   value: 'PROCESSING' },
     { label: 'Livrées',         value: 'DELIVERED' },
   ];
 
@@ -97,7 +101,7 @@ export default function OrdersPage() {
                 return (
                   <div key={order.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
                     <Link href={`/sales/orders/${order.id}`} className="text-sm font-medium text-primary hover:underline">
-                      {order.code}
+                      {order.number}
                     </Link>
                     <div>
                       <p className="text-sm text-foreground">{order.customer?.companyName ?? '—'}</p>

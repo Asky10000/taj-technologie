@@ -10,14 +10,14 @@ import {
 
 export class CreateTicketDto {
   @ApiProperty()
-  @IsString()
-  @MinLength(5)
-  @MaxLength(300)
+  @IsString({ message: 'Le titre doit être une chaîne de caractères' })
+  @MinLength(5, { message: 'Le titre doit comporter au moins 5 caractères' })
+  @MaxLength(300, { message: 'Le titre ne peut pas dépasser 300 caractères' })
   title: string;
 
   @ApiProperty()
-  @IsString()
-  @MinLength(10)
+  @IsString({ message: 'La description doit être une chaîne de caractères' })
+  @MinLength(10, { message: 'La description doit comporter au moins 10 caractères' })
   description: string;
 
   @ApiPropertyOptional({ enum: TicketPriority, default: TicketPriority.MEDIUM })

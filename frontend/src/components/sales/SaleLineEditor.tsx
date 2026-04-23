@@ -10,12 +10,15 @@ interface SaleLineEditorProps {
 }
 
 const emptyLine = (): Omit<SaleLine, 'id'> => ({
-  designation: '', quantity: 1, unitPrice: 0, taxRate: 20, discountPercent: 0,
+  description: '', quantity: 1, unitPrice: 0, taxRate: 20, discountType: 'PERCENT', discountValue: 0,
 });
 
 function calcLine(l: Omit<SaleLine, 'id'>) {
   const base = Number(l.quantity) * Number(l.unitPrice);
-  const ht   = base * (1 - Number(l.discountPercent) / 100);
+  const discVal = Number(l.discountValue ?? 0);
+  const ht = l.discountType === 'FIXED'
+    ? base - discVal
+    : base * (1 - discVal / 100);
   const ttc  = ht * (1 + Number(l.taxRate) / 100);
   return { ht, ttc };
 }
@@ -50,8 +53,8 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
         return (
           <div key={i} className="grid grid-cols-[1fr_56px_80px_64px_64px_72px_32px] gap-1.5 items-center">
             <input
-              value={line.designation}
-              onChange={(e) => update(i, { designation: e.target.value })}
+              value={line.description}
+              onChange={(e) => update(i, { description: e.target.value })}
               placeholder="Description du produit ou service"
               className={input('w-full')}
             />
@@ -74,9 +77,9 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
               className={input('w-full text-right')}
             />
             <input
-              type="number" min={0} max={100} step={0.5}
-              value={line.discountPercent}
-              onChange={(e) => update(i, { discountPercent: +e.target.value })}
+              type="number" min={0} step={0.5}
+              value={line.discountValue ?? 0}
+              onChange={(e) => update(i, { discountValue: +e.target.value })}
               className={input('w-full text-right')}
             />
             <span className="text-xs font-medium text-right text-foreground pr-1">

@@ -40,7 +40,7 @@ export default function QuotesPage() {
     customerId: '', validUntil: '', globalDiscount: 0, notes: '',
   });
   const [lines, setLines] = useState<Omit<SaleLine, 'id'>[]>([
-    { designation: '', quantity: 1, unitPrice: 0, taxRate: 20, discountPercent: 0 },
+    { description: '', quantity: 1, unitPrice: 0, taxRate: 20, discountType: 'PERCENT', discountValue: 0 },
   ]);
 
   const { data, isLoading, isFetching } = useQuotes({ page, limit: 20, search: search || undefined, status: status || undefined });
@@ -107,7 +107,7 @@ export default function QuotesPage() {
                 const transitions = STATUS_TRANSITIONS[quote.status];
                 return (
                   <div key={quote.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
-                    <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.code}</Link>
+                    <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.number}</Link>
                     <div>
                       <p className="text-sm text-foreground">{quote.customer?.companyName ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(quote.createdAt)}</p>
@@ -154,11 +154,11 @@ export default function QuotesPage() {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            if (!lines.length || !lines[0].designation) return;
+            if (!lines.length || !lines[0].description) return;
             await createMutation.mutateAsync({ ...form, lines, globalDiscount: form.globalDiscount || 0 });
             setShowModal(false);
             setForm({ customerId: '', validUntil: '', globalDiscount: 0, notes: '' });
-            setLines([{ designation: '', quantity: 1, unitPrice: 0, taxRate: 20, discountPercent: 0 }]);
+            setLines([{ description: '', quantity: 1, unitPrice: 0, taxRate: 20, discountType: 'PERCENT', discountValue: 0 }]);
           }}
           className="space-y-5"
         >

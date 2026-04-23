@@ -1,6 +1,6 @@
-export type TicketStatus   = 'OPEN' | 'IN_PROGRESS' | 'ON_HOLD' | 'RESOLVED' | 'CLOSED';
+export type TicketStatus   = 'OPEN' | 'IN_PROGRESS' | 'PENDING_CLIENT' | 'PENDING_SUPPLIER' | 'ESCALATED' | 'RESOLVED' | 'CLOSED' | 'CANCELLED';
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type TicketCategory = 'HARDWARE' | 'SOFTWARE' | 'NETWORK' | 'SECURITY' | 'TRAINING' | 'OTHER';
+export type TicketCategory = 'HARDWARE' | 'SOFTWARE' | 'NETWORK' | 'SECURITY' | 'EMAIL' | 'PRINT' | 'ACCESS' | 'INSTALLATION' | 'MAINTENANCE' | 'OTHER';
 
 export interface TicketComment {
   id:               string;
@@ -15,7 +15,7 @@ export interface TicketComment {
 
 export interface Ticket {
   id:                   string;
-  code:                 string;
+  number:               string;
   title:                string;
   description:          string;
   status:               TicketStatus;
@@ -23,8 +23,8 @@ export interface Ticket {
   category:             TicketCategory;
   customerId?:          string;
   customer?:            { id: string; companyName: string; code: string };
-  assigneeId?:          string;
-  assignee?:            { id: string; firstName: string; lastName: string };
+  assignedToId?:        string;
+  assignedTo?:          { id: string; firstName: string; lastName: string };
   slaResponseDueAt?:    string;
   slaResolutionDueAt?:  string;
   slaResponseMet?:      boolean;

@@ -14,11 +14,14 @@ import type { TicketStatus, TicketPriority, TicketCategory } from '@/types/ticke
 
 // ── Helpers visuels ──────────────────────────────────────────────
 const STATUS_CONFIG: Record<TicketStatus, { label: string; color: string; icon: typeof Ticket }> = {
-  OPEN:        { label: 'Ouvert',      color: 'bg-yellow-400',  icon: Ticket },
-  IN_PROGRESS: { label: 'En cours',   color: 'bg-blue-500',    icon: Clock },
-  ON_HOLD:     { label: 'En attente', color: 'bg-slate-400',   icon: Clock },
-  RESOLVED:    { label: 'Résolu',     color: 'bg-emerald-500', icon: CheckCircle },
-  CLOSED:      { label: 'Fermé',      color: 'bg-gray-400',    icon: CheckCircle },
+  OPEN:             { label: 'Ouvert',           color: 'bg-yellow-400',  icon: Ticket },
+  IN_PROGRESS:      { label: 'En cours',         color: 'bg-blue-500',    icon: Clock },
+  PENDING_CLIENT:   { label: 'Att. client',      color: 'bg-slate-400',   icon: Clock },
+  PENDING_SUPPLIER: { label: 'Att. fournisseur', color: 'bg-orange-400',  icon: Clock },
+  ESCALATED:        { label: 'Escaladé',         color: 'bg-red-400',     icon: AlertTriangle },
+  RESOLVED:         { label: 'Résolu',           color: 'bg-emerald-500', icon: CheckCircle },
+  CLOSED:           { label: 'Fermé',            color: 'bg-gray-400',    icon: CheckCircle },
+  CANCELLED:        { label: 'Annulé',           color: 'bg-gray-300',    icon: CheckCircle },
 };
 
 const PRIORITY_CONFIG: Record<TicketPriority, { label: string; variant: 'danger' | 'warning' | 'info' | 'default' }> = {
@@ -32,7 +35,7 @@ const STATUS_FILTERS: { label: string; value: TicketStatus | '' }[] = [
   { label: 'Tous',       value: '' },
   { label: 'Ouverts',    value: 'OPEN' },
   { label: 'En cours',   value: 'IN_PROGRESS' },
-  { label: 'En attente', value: 'ON_HOLD' },
+  { label: 'En attente', value: 'PENDING_CLIENT' },
   { label: 'Résolus',    value: 'RESOLVED' },
 ];
 
@@ -185,10 +188,10 @@ export default function TicketsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-xs text-muted-foreground">{ticket.code}</span>
-                        {ticket.assignee && (
+                        <span className="text-xs text-muted-foreground">{ticket.number}</span>
+                        {ticket.assignedTo && (
                           <span className="text-xs text-muted-foreground">
-                            → {ticket.assignee.firstName} {ticket.assignee.lastName}
+                            → {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
                           </span>
                         )}
                         <span className="text-xs text-muted-foreground">
@@ -243,6 +246,8 @@ export default function TicketsPage() {
             <label className="text-sm font-medium">Titre <span className="text-destructive">*</span></label>
             <input
               required
+              minLength={5}
+              maxLength={300}
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
               placeholder="Ex: Imprimante HP ne répond plus"
@@ -272,7 +277,9 @@ export default function TicketsPage() {
                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {[['HARDWARE','Matériel'],['SOFTWARE','Logiciel'],['NETWORK','Réseau'],
-                  ['SECURITY','Sécurité'],['TRAINING','Formation'],['OTHER','Autre']].map(([v,l]) => (
+                  ['SECURITY','Sécurité'],['EMAIL','Email'],['PRINT','Impression'],
+                  ['ACCESS','Accès'],['INSTALLATION','Installation'],['MAINTENANCE','Maintenance'],
+                  ['OTHER','Autre']].map(([v,l]) => (
                   <option key={v} value={v}>{l}</option>
                 ))}
               </select>
@@ -283,6 +290,7 @@ export default function TicketsPage() {
             <label className="text-sm font-medium">Description <span className="text-destructive">*</span></label>
             <textarea
               required
+              minLength={10}
               rows={4}
               value={form.description}
               onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}

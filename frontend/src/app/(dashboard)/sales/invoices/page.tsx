@@ -13,12 +13,13 @@ import { formatCurrency, formatDate, formatRelativeTime, cn } from '@/lib/utils'
 import type { InvoiceStatus } from '@/types/sales.types';
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; variant: 'default' | 'info' | 'success' | 'danger' | 'warning' | 'outline' }> = {
-  DRAFT:           { label: 'Brouillon',       variant: 'outline' },
-  PENDING:         { label: 'En attente',      variant: 'info' },
-  PARTIALLY_PAID:  { label: 'Part. payée',     variant: 'warning' },
-  PAID:            { label: 'Payée',           variant: 'success' },
-  OVERDUE:         { label: 'En retard',       variant: 'danger' },
-  CANCELLED:       { label: 'Annulée',         variant: 'default' },
+  DRAFT:          { label: 'Brouillon',    variant: 'outline' },
+  SENT:           { label: 'Envoyée',     variant: 'info' },
+  PARTIALLY_PAID: { label: 'Part. payée', variant: 'warning' },
+  PAID:           { label: 'Payée',       variant: 'success' },
+  OVERDUE:        { label: 'En retard',   variant: 'danger' },
+  CANCELLED:      { label: 'Annulée',     variant: 'default' },
+  REFUNDED:       { label: 'Remboursée',  variant: 'outline' },
 };
 
 export default function InvoicesPage() {
@@ -33,10 +34,10 @@ export default function InvoicesPage() {
   const recordPayment = useRecordPayment();
 
   const FILTER_OPTIONS: { label: string; value: InvoiceStatus | '' }[] = [
-    { label: 'Toutes',     value: '' },
-    { label: 'En attente', value: 'PENDING' },
-    { label: 'En retard',  value: 'OVERDUE' },
-    { label: 'Payées',     value: 'PAID' },
+    { label: 'Toutes',    value: '' },
+    { label: 'Envoyées',  value: 'SENT' },
+    { label: 'En retard', value: 'OVERDUE' },
+    { label: 'Payées',    value: 'PAID' },
   ];
 
   return (
@@ -90,7 +91,7 @@ export default function InvoicesPage() {
                     <div className="flex items-center gap-2">
                       {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
                       <Link href={`/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">
-                        {invoice.code}
+                        {invoice.number}
                       </Link>
                     </div>
                     <div>
@@ -107,7 +108,7 @@ export default function InvoicesPage() {
                     </span>
                     <div className="flex items-center gap-2">
                       <Badge variant={sc.variant}>{sc.label}</Badge>
-                      {!['PAID','CANCELLED'].includes(invoice.status) && (
+                      {!['PAID','CANCELLED','REFUNDED'].includes(invoice.status) && (
                         <button
                           onClick={() => { setPayModal(invoice.id); setPayAmount(invoice.remainingAmount); }}
                           className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent hover:text-foreground transition-colors text-muted-foreground"

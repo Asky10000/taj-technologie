@@ -13,19 +13,25 @@ import { formatDate, formatRelativeTime, cn, getInitials } from '@/lib/utils';
 import type { TicketStatus } from '@/types/tickets.types';
 
 const STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  OPEN:        ['IN_PROGRESS', 'ON_HOLD', 'CLOSED'],
-  IN_PROGRESS: ['ON_HOLD', 'RESOLVED'],
-  ON_HOLD:     ['IN_PROGRESS', 'CLOSED'],
-  RESOLVED:    ['CLOSED'],
-  CLOSED:      [],
+  OPEN:             ['IN_PROGRESS', 'PENDING_CLIENT', 'CANCELLED'],
+  IN_PROGRESS:      ['PENDING_CLIENT', 'PENDING_SUPPLIER', 'ESCALATED', 'RESOLVED'],
+  PENDING_CLIENT:   ['IN_PROGRESS', 'RESOLVED', 'CANCELLED'],
+  PENDING_SUPPLIER: ['IN_PROGRESS', 'RESOLVED'],
+  ESCALATED:        ['IN_PROGRESS', 'RESOLVED'],
+  RESOLVED:         ['CLOSED', 'OPEN'],
+  CLOSED:           [],
+  CANCELLED:        [],
 };
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
-  OPEN:        'Ouvert',
-  IN_PROGRESS: 'En cours',
-  ON_HOLD:     'En attente',
-  RESOLVED:    'Résolu',
-  CLOSED:      'Fermé',
+  OPEN:             'Ouvert',
+  IN_PROGRESS:      'En cours',
+  PENDING_CLIENT:   'Att. client',
+  PENDING_SUPPLIER: 'Att. fournisseur',
+  ESCALATED:        'Escaladé',
+  RESOLVED:         'Résolu',
+  CLOSED:           'Fermé',
+  CANCELLED:        'Annulé',
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -91,7 +97,7 @@ export default function TicketDetailPage() {
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">{ticket.code} · créé {formatRelativeTime(ticket.createdAt)}</p>
+            <p className="text-xs text-muted-foreground">{ticket.number} · créé {formatRelativeTime(ticket.createdAt)}</p>
           </div>
         </div>
 
@@ -232,7 +238,7 @@ export default function TicketDetailPage() {
               { label: 'Priorité',  value: ticket.priority },
               { label: 'Catégorie', value: ticket.category },
               { label: 'Client',    value: ticket.customer?.companyName ?? '—' },
-              { label: 'Assigné à', value: ticket.assignee ? `${ticket.assignee.firstName} ${ticket.assignee.lastName}` : 'Non assigné' },
+              { label: 'Assigné à', value: ticket.assignedTo ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}` : 'Non assigné' },
               { label: 'Temps total', value: `${Math.round(ticket.totalTimeMinutes / 60 * 10) / 10} h` },
             ].map((item) => (
               <div key={item.label} className="flex items-start justify-between gap-2">

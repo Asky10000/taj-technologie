@@ -44,7 +44,10 @@ export function useCreateQuote() {
     mutationFn: (payload: { customerId: string; lines: Omit<SaleLine, 'id'>[]; validUntil?: string; notes?: string; globalDiscount?: number }) =>
       api.post<ApiResponse<Quote>>('/sales/quotes', payload).then((r) => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['quotes'] }); toast.success('Devis créé'); },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -54,7 +57,10 @@ export function useUpdateQuoteStatus() {
     mutationFn: ({ id, status }: { id: string; status: QuoteStatus }) =>
       api.patch<ApiResponse<Quote>>(`/sales/quotes/${id}/status`, { status }).then((r) => r.data.data),
     onSuccess: (_, { id }) => { qc.invalidateQueries({ queryKey: salesKeys.quote(id) }); qc.invalidateQueries({ queryKey: ['quotes'] }); toast.success('Statut mis à jour'); },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -68,7 +74,10 @@ export function useConvertQuoteToOrder() {
       qc.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Devis converti en commande');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -103,7 +112,10 @@ export function useUpdateOrderStatus() {
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       api.patch<ApiResponse<Order>>(`/sales/orders/${id}/status`, { status }).then((r) => r.data.data),
     onSuccess: (_, { id }) => { qc.invalidateQueries({ queryKey: salesKeys.order(id) }); qc.invalidateQueries({ queryKey: ['orders'] }); toast.success('Statut mis à jour'); },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -113,7 +125,10 @@ export function useGenerateInvoice() {
     mutationFn: (orderId: string) =>
       api.post<ApiResponse<Invoice>>(`/sales/orders/${orderId}/invoice`).then((r) => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['invoices'] }); toast.success('Facture générée'); },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -152,6 +167,9 @@ export function useRecordPayment() {
       qc.invalidateQueries({ queryKey: ['invoices'] });
       toast.success('Paiement enregistré');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }

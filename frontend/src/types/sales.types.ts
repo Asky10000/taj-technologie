@@ -1,22 +1,23 @@
 export type QuoteStatus   = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'CONVERTED';
-export type OrderStatus   = 'CONFIRMED' | 'IN_PREPARATION' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-export type InvoiceStatus = 'DRAFT' | 'PENDING' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+export type OrderStatus   = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'PARTIALLY_DELIVERED' | 'DELIVERED' | 'INVOICED' | 'CANCELLED';
+export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'REFUNDED';
 
 export interface SaleLine {
-  id?:             string;
-  productId?:      string;
-  product?:        { id: string; sku: string; name: string };
-  designation:     string;
-  quantity:        number;
-  unitPrice:       number;
-  taxRate:         number;
-  discountPercent: number;
-  sortOrder?:      number;
+  id?:            string;
+  productId?:     string;
+  product?:       { id: string; sku: string; name: string };
+  description:    string;
+  quantity:       number;
+  unitPrice:      number;
+  taxRate:        number;
+  discountType?:  'PERCENT' | 'FIXED';
+  discountValue?: number;
+  sortOrder?:     number;
 }
 
 export interface Quote {
   id:           string;
-  code:         string;
+  number:       string;
   status:       QuoteStatus;
   customerId:   string;
   customer?:    { id: string; companyName: string; code: string };
@@ -33,7 +34,7 @@ export interface Quote {
 
 export interface Order {
   id:          string;
-  code:        string;
+  number:      string;
   status:      OrderStatus;
   customerId:  string;
   customer?:   { id: string; companyName: string; code: string };
@@ -49,7 +50,7 @@ export interface Order {
 
 export interface Invoice {
   id:            string;
-  code:          string;
+  number:        string;
   status:        InvoiceStatus;
   customerId:    string;
   customer?:     { id: string; companyName: string; code: string };

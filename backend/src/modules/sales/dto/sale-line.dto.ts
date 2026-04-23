@@ -12,8 +12,8 @@ export class SaleLineDto {
   productId?: string;
 
   @ApiProperty()
-  @IsString()
-  @MaxLength(300)
+  @IsString({ message: 'La désignation doit être une chaîne de caractères' })
+  @MaxLength(300, { message: 'La désignation ne peut pas dépasser 300 caractères' })
   description: string;
 
   @ApiProperty({ default: 1, minimum: 0.001 })

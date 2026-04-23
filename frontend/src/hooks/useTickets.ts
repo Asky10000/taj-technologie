@@ -55,7 +55,10 @@ export function useCreateTicket() {
       qc.invalidateQueries({ queryKey: ['tickets'] });
       toast.success('Ticket créé avec succès');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -69,7 +72,10 @@ export function useUpdateTicketStatus() {
       qc.invalidateQueries({ queryKey: ['tickets'] });
       toast.success('Statut mis à jour');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -82,7 +88,10 @@ export function useAssignTicket() {
       qc.invalidateQueries({ queryKey: ticketKeys.detail(id) });
       toast.success('Ticket assigné');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -98,7 +107,10 @@ export function useAddComment() {
       qc.invalidateQueries({ queryKey: ticketKeys.detail(ticketId) });
       toast.success('Commentaire ajouté');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
 
@@ -111,6 +123,9 @@ export function useRateTicket() {
       qc.invalidateQueries({ queryKey: ticketKeys.detail(id) });
       toast.success('Note enregistrée');
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Une erreur est survenue'));
+    },
   });
 }
