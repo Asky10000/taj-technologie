@@ -173,8 +173,8 @@ export class ReportsService {
       // Projets actifs / dépassement budget
       this.dataSource.query<{ active: string; over_budget: string; total_budget: string; total_cost: string }[]>(`
         SELECT
-          COUNT(*) FILTER (WHERE status = 'ACTIVE') AS active,
-          COUNT(*) FILTER (WHERE status = 'ACTIVE' AND actual_cost > budget AND budget > 0) AS over_budget,
+          COUNT(*) FILTER (WHERE status = 'IN_PROGRESS') AS active,
+          COUNT(*) FILTER (WHERE status = 'IN_PROGRESS' AND actual_cost > budget AND budget > 0) AS over_budget,
           COALESCE(SUM(budget), 0)      AS total_budget,
           COALESCE(SUM(actual_cost), 0) AS total_cost
         FROM projects WHERE deleted_at IS NULL
@@ -635,7 +635,7 @@ export class ReportsService {
       }[]>(`
         SELECT
           COUNT(*) AS total,
-          COUNT(*) FILTER (WHERE status = 'ACTIVE') AS active,
+          COUNT(*) FILTER (WHERE status = 'IN_PROGRESS') AS active,
           COUNT(*) FILTER (WHERE status = 'COMPLETED') AS completed,
           COALESCE(SUM(budget), 0) AS budget,
           COALESCE(SUM(actual_cost), 0) AS cost,
