@@ -6,6 +6,8 @@ import axios, {
 } from 'axios';
 import { TokenPair } from '@/types/api.types';
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+
 // ── Clés localStorage ────────────────────────────────────────────
 const ACCESS_TOKEN_KEY  = 'taj_access_token';
 const REFRESH_TOKEN_KEY = 'taj_refresh_token';
@@ -24,10 +26,8 @@ export const tokenStorage = {
 };
 
 // ── Instance principale ──────────────────────────────────────────
-// Uses the Next.js rewrite proxy (/api/* → backend/api/v1/*)
-// to avoid browser CORS issues with direct Railway calls.
 const api: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: `${BASE_URL}/api/v1`,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15_000,
 });
@@ -84,7 +84,7 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.post<{ data: TokenPair }>(
-          '/api/auth/refresh',
+          `${BASE_URL}/api/v1/auth/refresh`,
           { refreshToken },
         );
         const { accessToken, refreshToken: newRefreshToken } = data.data;
