@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Building2, Warehouse, FileText,
   Ticket, FolderKanban, Truck, BarChart3, Settings, Monitor, ChevronRight,
-  LogOut, X,
+  LogOut, X, Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
@@ -22,6 +22,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Tableau de bord', href: '/',           icon: LayoutDashboard },
   { label: 'CRM',              href: '/crm',       icon: Building2 },
+  { label: 'Produits',         href: '/products',  icon: Package },
   { label: 'Inventaire',       href: '/inventory', icon: Warehouse },
   { label: 'Ventes',           href: '/sales',     icon: FileText },
   { label: 'Fournisseurs',     href: '/suppliers', icon: Truck },
