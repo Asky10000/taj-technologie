@@ -14,6 +14,20 @@ export interface User {
   email: string;
   role: UserRole;
   isActive: boolean;
+  lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type LoginStatus = 'SUCCESS' | 'FAILED';
+
+export interface LoginHistory {
+  id: string;
+  userId?: string;
+  status: LoginStatus;
+  emailAttempted?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  failureReason?: string;
+  createdAt: string;
 }

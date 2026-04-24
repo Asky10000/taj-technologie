@@ -132,6 +132,18 @@ export class UsersController {
     await this.usersService.remove(id, requester);
   }
 
+  // ─── LOGIN HISTORY ───────────────────────────────────────────
+  @Get(':id/login-history')
+  @Roles(Role.ADMIN, Role.MANAGER, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Historique de connexion d\'un utilisateur' })
+  getLoginHistory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('page')  page  = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.usersService.getLoginHistory(id, Number(page), Number(limit));
+  }
+
   // ─── RESTORE ─────────────────────────────────────────────────
   @Post(':id/restore')
   @Roles(Role.SUPER_ADMIN)

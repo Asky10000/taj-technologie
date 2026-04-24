@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Plus, Loader2, Shield, UserCheck, UserX, Pencil, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Users, Plus, Loader2, Shield, UserCheck, UserX, Pencil, Trash2, History } from 'lucide-react';
 import { useUsers, useCreateUser, useUpdateUser, useToggleUserStatus, useDeleteUser } from '@/hooks/useUsers';
 import { Badge }       from '@/components/ui/Badge';
 import { Pagination }  from '@/components/ui/Pagination';
@@ -157,6 +158,13 @@ export default function UsersPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1.5">
+                      <Link
+                        href={`/users/${user.id}`}
+                        className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent transition-colors text-muted-foreground"
+                        title="Historique de connexion"
+                      >
+                        <History className="w-3.5 h-3.5" />
+                      </Link>
                       {manageable && (
                         <>
                           <button

@@ -11,6 +11,7 @@ import { Repository, Brackets, IsNull } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from './entities/user.entity';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
+import { LoginHistory } from '../auth/entities/login-history.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
@@ -27,6 +28,8 @@ export class UsersService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @InjectRepository(LoginHistory)
+    private readonly loginHistoryRepo: Repository<LoginHistory>,
   ) {
     this.saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10);
   }
@@ -242,6 +245,31 @@ export class UsersService {
         `Vous ne pouvez pas attribuer le rôle ${targetRole}`,
       );
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // LOGIN HISTORY
+  // ─────────────────────────────────────────────────────────────
+  async getLoginHistory(
+    userId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<{ items: LoginHistory[]; total: number; page: number; totalPages: number }> {
+    await this.findOne(userId); // vérifie que l'utilisateur existe
+
+    const [items, total] = await this.loginHistoryRepo.findAndCount({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    return {
+      items,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   // ─────────────────────────────────────────────────────────────

@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User, UserStatus } from '../users/entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { LoginHistory, LoginStatus } from './entities/login-history.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -33,6 +34,8 @@ export class AuthService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @InjectRepository(LoginHistory)
+    private readonly loginHistoryRepo: Repository<LoginHistory>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
@@ -90,20 +93,50 @@ export class AuthService {
       where: { email: dto.email },
       select: ['id', 'email', 'passwordHash', 'firstName', 'lastName', 'role', 'status'],
     });
+
     if (!user) {
+      await this.loginHistoryRepo.save({
+        status:         LoginStatus.FAILED,
+        emailAttempted: dto.email,
+        ipAddress:      meta?.ipAddress,
+        userAgent:      meta?.userAgent,
+        failureReason:  'Utilisateur inconnu',
+      });
       throw new UnauthorizedException('Identifiants invalides');
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
+      await this.loginHistoryRepo.save({
+        userId:         user.id,
+        status:         LoginStatus.FAILED,
+        emailAttempted: dto.email,
+        ipAddress:      meta?.ipAddress,
+        userAgent:      meta?.userAgent,
+        failureReason:  'Mot de passe incorrect',
+      });
       throw new UnauthorizedException('Identifiants invalides');
     }
 
     if (user.status !== UserStatus.ACTIVE) {
+      await this.loginHistoryRepo.save({
+        userId:         user.id,
+        status:         LoginStatus.FAILED,
+        emailAttempted: dto.email,
+        ipAddress:      meta?.ipAddress,
+        userAgent:      meta?.userAgent,
+        failureReason:  'Compte inactif ou suspendu',
+      });
       throw new UnauthorizedException('Compte inactif ou suspendu');
     }
 
     await this.userRepo.update(user.id, { lastLoginAt: new Date() });
+    await this.loginHistoryRepo.save({
+      userId:    user.id,
+      status:    LoginStatus.SUCCESS,
+      ipAddress: meta?.ipAddress,
+      userAgent: meta?.userAgent,
+    });
 
     const tokens = await this.generateTokens(user, meta);
     this.logger.log(`Connexion réussie : ${user.email}`);

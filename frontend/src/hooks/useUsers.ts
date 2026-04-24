@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import type { User, UserRole } from '@/types/user.types';
+import type { User, UserRole, LoginHistory } from '@/types/user.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
 export const userKeys = {
@@ -52,6 +52,31 @@ export function useToggleUserStatus() {
       api.patch<ApiResponse<User>>(`/users/${id}`, { isActive }).then((r) => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('Statut mis à jour'); },
     onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+  });
+}
+
+export function useUser(id: string) {
+  return useQuery({
+    queryKey: userKeys.one(id),
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<User>>(`/users/${id}`);
+      return data.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useUserLoginHistory(userId: string, page = 1) {
+  return useQuery({
+    queryKey: ['users', userId, 'login-history', page],
+    queryFn: async () => {
+      const { data } = await api.get<{ items: LoginHistory[]; total: number; page: number; totalPages: number }>(
+        `/users/${userId}/login-history`,
+        { params: { page, limit: 20 } },
+      );
+      return data;
+    },
+    enabled: !!userId,
   });
 }
 
