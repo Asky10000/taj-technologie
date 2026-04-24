@@ -37,7 +37,7 @@ export default function QuotesPage() {
   const [status, setStatus] = useState<QuoteStatus | ''>('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
-    customerId: '', validUntil: '', globalDiscount: 0, notes: '',
+    customerId: '', validUntil: '', globalDiscountPercent: 0, notes: '',
   });
   const [lines, setLines] = useState<Omit<SaleLine, 'id'>[]>([
     { description: '', quantity: 1, unitPrice: 0, taxRate: 20, discountType: 'PERCENT', discountValue: 0 },
@@ -178,9 +178,9 @@ export default function QuotesPage() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!lines.length || !lines[0].description) return;
-            await createMutation.mutateAsync({ ...form, lines, globalDiscount: form.globalDiscount || 0 });
+            await createMutation.mutateAsync({ ...form, lines, globalDiscountPercent: form.globalDiscountPercent || 0 });
             setShowModal(false);
-            setForm({ customerId: '', validUntil: '', globalDiscount: 0, notes: '' });
+            setForm({ customerId: '', validUntil: '', globalDiscountPercent: 0, notes: '' });
             setLines([{ description: '', quantity: 1, unitPrice: 0, taxRate: 20, discountType: 'PERCENT', discountValue: 0 }]);
           }}
           className="space-y-5"
@@ -199,8 +199,8 @@ export default function QuotesPage() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Remise globale (%)</label>
-              <input type="number" min={0} max={100} step={0.5} value={form.globalDiscount || ''}
-                onChange={(e) => setForm((p) => ({ ...p, globalDiscount: +e.target.value }))}
+              <input type="number" min={0} max={100} step={0.5} value={form.globalDiscountPercent || ''}
+                onChange={(e) => setForm((p) => ({ ...p, globalDiscountPercent: +e.target.value }))}
                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
           </div>

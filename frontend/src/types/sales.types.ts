@@ -23,7 +23,7 @@ export interface Quote {
   customer?:    { id: string; name: string; code: string };
   validUntil?:  string;
   notes?:       string;
-  globalDiscount: number;
+  globalDiscountPercent: number;
   lines:        SaleLine[];
   totalHT:      number;
   totalTVA:     number;

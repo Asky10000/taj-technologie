@@ -41,7 +41,7 @@ export function useQuote(id: string) {
 export function useCreateQuote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { customerId: string; lines: Omit<SaleLine, 'id'>[]; validUntil?: string; notes?: string; globalDiscount?: number }) =>
+    mutationFn: (payload: { customerId: string; lines: Omit<SaleLine, 'id'>[]; validUntil?: string; notes?: string; globalDiscountPercent?: number }) =>
       api.post<ApiResponse<Quote>>('/sales/quotes', payload).then((r) => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['quotes'] }); toast.success('Devis créé'); },
     onError: (err: any) => {
