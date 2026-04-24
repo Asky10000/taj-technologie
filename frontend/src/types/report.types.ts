@@ -1,25 +1,49 @@
-// ── Dashboard ─────────────────────────────────────────────────────
+// ── Dashboard — structure réelle du backend ───────────────────────
 export interface DashboardReport {
-  revenue:         { total: number; thisMonth: number; lastMonth: number; growth: number };
-  quotes:          { total: number; pending: number; accepted: number; conversionRate: number };
-  orders:          { total: number; active: number; delivered: number };
-  invoices:        { total: number; overdue: number; overdueAmount: number };
-  customers:       { total: number; newThisMonth: number };
-  prospects:       { total: number; byStage: Record<string, number> };
-  tickets:         { total: number; open: number; slaBreached: number };
-  projects:        { total: number; active: number; overBudget: number };
-  inventory:       { totalValue: number; lowStockCount: number };
-  purchases:       { totalThisMonth: number; pendingOrders: number };
-  timeline:        { month: string; revenue: number; purchases: number }[];
+  sales: {
+    monthRevenue:          number;
+    monthRevenueHT:        number;
+    yearRevenue:           number;
+    pendingInvoicesAmount: number;
+    overdueInvoicesAmount: number;
+    overdueCount:          number;
+  };
+  crm: {
+    totalCustomers:        number;
+    newCustomersThisMonth: number;
+    totalProspects:        number;
+    activeProspects:       number;
+  };
+  tickets: {
+    open:        number;
+    inProgress:  number;
+    critical:    number;
+    slaBreached: number;
+  };
+  projects: {
+    active:          number;
+    overBudget:      number;
+    totalBudget:     number;
+    totalActualCost: number;
+  };
+  inventory: {
+    outOfStock:      number;
+    lowStock:        number;
+    totalStockValue: number;
+  };
+  purchases: {
+    pendingOrders:       number;
+    pendingOrdersAmount: number;
+  };
 }
 
 // ── Sales ─────────────────────────────────────────────────────────
 export interface SalesReport {
-  summary: { totalQuotes: number; totalOrders: number; totalInvoices: number; totalRevenue: number; conversionRate: number };
-  timeline: { period: string; quotes: number; orders: number; revenue: number }[];
-  byProductType: { type: string; count: number; revenue: number }[];
-  topCustomers: { id: string; name: string; revenue: number; orders: number }[];
-  topProducts: { id: string; name: string; quantity: number; revenue: number }[];
+  timeline:       { period: string; revenueHT: number; revenueTTC: number; count: number }[];
+  byProductType:  { type: string; revenueHT: number; quantity: number }[];
+  topCustomers:   { customerId: string; name: string; revenueHT: number; invoiceCount: number }[];
+  topProducts:    { productId: string; sku: string; name: string; quantity: number; revenueHT: number }[];
+  conversionRate: { totalQuotes: number; convertedQuotes: number; rate: number };
 }
 
 // ── Financial ─────────────────────────────────────────────────────
@@ -39,7 +63,7 @@ export interface InventoryReport {
 
 // ── Report query params ───────────────────────────────────────────
 export interface ReportQuery {
-  from?: string;
-  to?: string;
+  from?:    string;
+  to?:      string;
   groupBy?: 'day' | 'week' | 'month';
 }
