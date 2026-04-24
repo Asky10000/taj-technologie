@@ -66,7 +66,7 @@ export default function InventoryReportPage() {
             <BarChart data={data.byCategory} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-              <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k€`} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k` : `${v}`} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="value" name="Valeur" radius={[4, 4, 0, 0]}>
                 {data.byCategory.map((_, i) => (
@@ -90,7 +90,7 @@ export default function InventoryReportPage() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-              <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k€`} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k` : `${v}`} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Area type="monotone" dataKey="value" name="Valeur" stroke="hsl(var(--primary))" fill="url(#stockGrad)" strokeWidth={2} dot={false} />
             </AreaChart>

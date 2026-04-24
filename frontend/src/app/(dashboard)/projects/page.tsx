@@ -243,7 +243,7 @@ export default function ProjectsPage() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Budget (€)</label>
+              <label className="text-sm font-medium">Budget (FCFA)</label>
               <input
                 type="number"
                 min={0}

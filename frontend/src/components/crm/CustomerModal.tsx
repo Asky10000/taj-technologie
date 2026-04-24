@@ -175,7 +175,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
           </Field>
 
           <div className="grid grid-cols-2 gap-2">
-            <Field label="Limite de crédit (€)" error={errors.creditLimit?.message}>
+            <Field label="Limite de crédit (FCFA)" error={errors.creditLimit?.message}>
               <input
                 {...register('creditLimit')}
                 type="number"

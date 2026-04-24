@@ -175,7 +175,7 @@ export default function StocksPage() {
           {/* Coût unitaire (optionnel pour IN) */}
           {adjType === 'IN' && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Coût unitaire (€)</label>
+              <label className="text-sm font-medium">Coût unitaire (FCFA)</label>
               <input
                 type="number" min={0} step={0.01}
                 value={adjCost || ''}

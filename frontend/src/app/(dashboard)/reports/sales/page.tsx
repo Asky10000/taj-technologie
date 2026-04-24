@@ -102,7 +102,7 @@ export default function SalesReportPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="period" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k€`} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                <YAxis tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k` : `${v}`} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" dataKey="revenueHT"  name="CA HT"  stroke="hsl(var(--primary))" fill="url(#caGrad)"  strokeWidth={2}   dot={false} />
                 <Area type="monotone" dataKey="revenueTTC" name="CA TTC" stroke="#6366f1"              fill="url(#ttcGrad)" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
@@ -147,7 +147,7 @@ export default function SalesReportPage() {
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={data.topProducts.slice(0, 6)} layout="vertical" margin={{ left: 0, right: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                    <XAxis type="number" tickFormatter={(v) => `${(v / 1000).toFixed(0)}k€`} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                    <XAxis type="number" tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k` : `${v}`} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={100} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="revenueHT" name="CA HT" radius={[0, 4, 4, 0]}>
@@ -169,7 +169,7 @@ export default function SalesReportPage() {
                 <BarChart data={data.byProductType} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="type" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k€`} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <YAxis tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k` : `${v}`} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="revenueHT" name="CA HT" radius={[4, 4, 0, 0]}>
                     {data.byProductType.map((_, i) => (

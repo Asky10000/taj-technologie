@@ -169,7 +169,7 @@ export default function InvoicesPage() {
           className="space-y-4"
         >
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Montant (€) <span className="text-destructive">*</span></label>
+            <label className="text-sm font-medium">Montant (FCFA) <span className="text-destructive">*</span></label>
             <input
               required type="number" min={0.01} step={0.01}
               value={payAmount}

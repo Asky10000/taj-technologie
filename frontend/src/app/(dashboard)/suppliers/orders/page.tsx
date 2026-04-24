@@ -313,7 +313,7 @@ export default function PurchaseOrdersPage() {
           setPayModal(null);
         }} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Montant (€) <span className="text-destructive">*</span></label>
+            <label className="text-sm font-medium">Montant (FCFA) <span className="text-destructive">*</span></label>
             <input required type="number" min={0.01} step={0.01} value={payAmount}
               onChange={(e) => setPayAmount(+e.target.value)}
               className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />

@@ -79,7 +79,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) =>
-            v >= 1000 ? `${(v / 1000).toFixed(0)}k€` : `${v}€`
+            v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}M` : v >= 1_000 ? `${(v / 1_000).toFixed(0)}k` : `${v}`
           }
           width={48}
         />

@@ -258,7 +258,7 @@ export default function ProspectsPage() {
           ))}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Budget estimé (€)</label>
+            <label className="text-sm font-medium">Budget estimé (FCFA)</label>
             <input
               type="number"
               min={0}

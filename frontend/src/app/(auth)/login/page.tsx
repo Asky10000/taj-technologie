@@ -68,7 +68,7 @@ export default function LoginPage() {
           {[
             { label: 'Clients', value: '500+' },
             { label: 'Tickets résolus', value: '12k+' },
-            { label: 'CA géré', value: '2M€+' },
+            { label: 'CA géré', value: '2Mds FCFA+' },
           ].map((stat) => (
             <div key={stat.label} className="bg-sidebar-accent/50 rounded-xl p-4">
               <div className="text-2xl font-bold text-sidebar-foreground">{stat.value}</div>
