@@ -62,7 +62,7 @@ export default function QuotesPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={handleSearch} placeholder="Référence, client…" className="w-56" />
+          <SearchInput value={search} onChange={handleSearch} placeholder="Référence, client…" className="w-full sm:w-56" />
           <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
             {FILTER_OPTIONS.map((f) => (
               <button key={f.value} onClick={() => { setStatus(f.value); setPage(1); }}
@@ -96,7 +96,8 @@ export default function QuotesPage() {
             action={<button onClick={() => setShowModal(true)} className="flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-white text-sm font-medium"><Plus className="w-4 h-4" /> Nouveau devis</button>} />
         ) : (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
+            {/* Header — desktop uniquement */}
+            <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
               {['RÉFÉRENCE','CLIENT','TOTAL TTC','VALIDITÉ','STATUT','ACTIONS'].map((h) => (
                 <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
               ))}
@@ -105,38 +106,60 @@ export default function QuotesPage() {
               {data.items.map((quote) => {
                 const sc = STATUS_CONFIG[quote.status];
                 const transitions = STATUS_TRANSITIONS[quote.status];
+                const hasActions = transitions.includes('SENT') || transitions.includes('ACCEPTED') || transitions.includes('CONVERTED') || quote.status === 'ACCEPTED';
                 return (
-                  <div key={quote.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
-                    <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.number}</Link>
-                    <div>
-                      <p className="text-sm text-foreground">{quote.customer?.name ?? '—'}</p>
-                      <p className="text-xs text-muted-foreground">{formatRelativeTime(quote.createdAt)}</p>
+                  <div key={quote.id}>
+                    {/* Carte mobile */}
+                    <div className="sm:hidden px-4 py-3 hover:bg-accent/30 transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.number}</Link>
+                        <Badge variant={sc.variant}>{sc.label}</Badge>
+                      </div>
+                      <p className="text-sm text-foreground mt-0.5">{quote.customer?.name ?? '—'}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-sm font-semibold">{formatCurrency(quote.totalTTC)}</span>
+                        <span className="text-xs text-muted-foreground">{quote.validUntil ? formatDate(quote.validUntil) : '—'}</span>
+                      </div>
+                      {hasActions && (
+                        <div className="flex items-center gap-1.5 mt-2">
+                          {transitions.includes('SENT') && (
+                            <button onClick={() => updateStatus.mutate({ id: quote.id, status: 'SENT' })} className="h-7 px-2.5 text-xs rounded-md border border-input hover:bg-accent transition-colors">Envoyer</button>
+                          )}
+                          {transitions.includes('ACCEPTED') && (
+                            <button onClick={() => updateStatus.mutate({ id: quote.id, status: 'ACCEPTED' })} className="h-7 px-2.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">Accepter</button>
+                          )}
+                          {(transitions.includes('CONVERTED') || quote.status === 'ACCEPTED') && (
+                            <button onClick={() => convertMutation.mutate(quote.id)} disabled={convertMutation.isPending} className="h-7 px-2.5 text-xs rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-1">
+                              <ArrowRight className="w-3 h-3" /> Commande
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <span className="text-sm font-semibold">{formatCurrency(quote.totalTTC)}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {quote.validUntil ? formatDate(quote.validUntil) : '—'}
-                    </span>
-                    <Badge variant={sc.variant}>{sc.label}</Badge>
-                    <div className="flex items-center gap-1.5">
-                      {transitions.includes('SENT') && (
-                        <button onClick={() => updateStatus.mutate({ id: quote.id, status: 'SENT' })}
-                          className="h-7 px-2.5 text-xs rounded-md border border-input hover:bg-accent transition-colors">
-                          Envoyer
-                        </button>
-                      )}
-                      {transitions.includes('ACCEPTED') && (
-                        <button onClick={() => updateStatus.mutate({ id: quote.id, status: 'ACCEPTED' })}
-                          className="h-7 px-2.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
-                          Accepter
-                        </button>
-                      )}
-                      {(transitions.includes('CONVERTED') || quote.status === 'ACCEPTED') && (
-                        <button onClick={() => convertMutation.mutate(quote.id)}
-                          disabled={convertMutation.isPending}
-                          className="h-7 px-2.5 text-xs rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-1">
-                          <ArrowRight className="w-3 h-3" /> Commande
-                        </button>
-                      )}
+
+                    {/* Ligne desktop */}
+                    <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                      <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.number}</Link>
+                      <div>
+                        <p className="text-sm text-foreground">{quote.customer?.name ?? '—'}</p>
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(quote.createdAt)}</p>
+                      </div>
+                      <span className="text-sm font-semibold">{formatCurrency(quote.totalTTC)}</span>
+                      <span className="text-xs text-muted-foreground">{quote.validUntil ? formatDate(quote.validUntil) : '—'}</span>
+                      <Badge variant={sc.variant}>{sc.label}</Badge>
+                      <div className="flex items-center gap-1.5">
+                        {transitions.includes('SENT') && (
+                          <button onClick={() => updateStatus.mutate({ id: quote.id, status: 'SENT' })} className="h-7 px-2.5 text-xs rounded-md border border-input hover:bg-accent transition-colors">Envoyer</button>
+                        )}
+                        {transitions.includes('ACCEPTED') && (
+                          <button onClick={() => updateStatus.mutate({ id: quote.id, status: 'ACCEPTED' })} className="h-7 px-2.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">Accepter</button>
+                        )}
+                        {(transitions.includes('CONVERTED') || quote.status === 'ACCEPTED') && (
+                          <button onClick={() => convertMutation.mutate(quote.id)} disabled={convertMutation.isPending} className="h-7 px-2.5 text-xs rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-1">
+                            <ArrowRight className="w-3 h-3" /> Commande
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

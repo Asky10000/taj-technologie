@@ -69,7 +69,7 @@ export default function UsersPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Nom, email…" className="w-56" />
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Nom, email…" className="w-full sm:w-56" />
           <select
             value={roleFilter}
             onChange={(e) => { setRoleFilter(e.target.value as UserRole | ''); setPage(1); }}

@@ -56,7 +56,7 @@ export default function SuppliersPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Nom, SIRET…" className="w-56" />
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Nom, SIRET…" className="w-full sm:w-56" />
           {isFetching && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
         </div>
         <button onClick={openCreate}

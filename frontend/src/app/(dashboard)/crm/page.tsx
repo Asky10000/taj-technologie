@@ -42,7 +42,7 @@ export default function CustomersPage() {
             value={search}
             onChange={handleSearch}
             placeholder="Nom, code, email…"
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
             {STATUS_FILTERS.map((f) => (
@@ -104,8 +104,8 @@ export default function CustomersPage() {
           />
         ) : (
           <>
-            {/* En-tête */}
-            <div className="grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-5 py-2.5 border-b border-border bg-muted/30">
+            {/* En-tête — desktop uniquement */}
+            <div className="hidden sm:grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-5 py-2.5 border-b border-border bg-muted/30">
               <span />
               <span className="text-xs font-semibold text-muted-foreground">CLIENT</span>
               <span className="text-xs font-semibold text-muted-foreground hidden md:block">CONTACT</span>
@@ -115,53 +115,54 @@ export default function CustomersPage() {
 
             <div className="divide-y divide-border">
               {data.items.map((customer) => (
-                <Link
-                  key={customer.id}
-                  href={`/crm/${customer.id}`}
-                  className="grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/50 transition-colors group"
-                >
-                  {/* Icône */}
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-4 h-4 text-primary" />
-                  </div>
-
-                  {/* Nom + code */}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                      {customer.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{customer.code}</p>
-                  </div>
-
-                  {/* Contact */}
-                  <div className="hidden md:block min-w-0 space-y-0.5">
-                    {customer.email && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Mail className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{customer.email}</span>
-                      </div>
-                    )}
-                    {customer.phone && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Phone className="w-3 h-3 flex-shrink-0" />
-                        <span>{customer.phone}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Ville */}
-                  {customer.city ? (
-                    <div className="hidden lg:flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MapPin className="w-3 h-3 flex-shrink-0" />
-                      <span>{customer.city}</span>
+                <div key={customer.id}>
+                  {/* Carte mobile */}
+                  <Link href={`/crm/${customer.id}`} className="sm:hidden flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors group">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-4 h-4 text-primary" />
                     </div>
-                  ) : (
-                    <span className="hidden lg:block" />
-                  )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{customer.name}</p>
+                      <p className="text-xs text-muted-foreground">{customer.code}</p>
+                      {customer.email && <p className="text-xs text-muted-foreground truncate">{customer.email}</p>}
+                    </div>
+                    <CustomerStatusBadge status={customer.status} />
+                  </Link>
 
-                  {/* Statut */}
-                  <CustomerStatusBadge status={customer.status} />
-                </Link>
+                  {/* Ligne desktop */}
+                  <Link href={`/crm/${customer.id}`} className="hidden sm:grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/50 transition-colors group">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{customer.name}</p>
+                      <p className="text-xs text-muted-foreground">{customer.code}</p>
+                    </div>
+                    <div className="hidden md:block min-w-0 space-y-0.5">
+                      {customer.email && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Mail className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{customer.email}</span>
+                        </div>
+                      )}
+                      {customer.phone && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Phone className="w-3 h-3 flex-shrink-0" />
+                          <span>{customer.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                    {customer.city ? (
+                      <div className="hidden lg:flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        <span>{customer.city}</span>
+                      </div>
+                    ) : (
+                      <span className="hidden lg:block" />
+                    )}
+                    <CustomerStatusBadge status={customer.status} />
+                  </Link>
+                </div>
               ))}
             </div>
 

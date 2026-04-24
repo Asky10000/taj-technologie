@@ -89,7 +89,7 @@ export default function PurchaseOrdersPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Référence, fournisseur…" className="w-56" />
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Référence, fournisseur…" className="w-full sm:w-56" />
           <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
             {FILTER_OPTIONS.map((f) => (
               <button key={f.value} onClick={() => { setStatus(f.value); setPage(1); }}

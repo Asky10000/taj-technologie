@@ -82,7 +82,7 @@ export default function TicketsPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={handleSearch} placeholder="Titre, code…" className="w-56" />
+          <SearchInput value={search} onChange={handleSearch} placeholder="Titre, code…" className="w-full sm:w-56" />
           <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
             {STATUS_FILTERS.map((f) => (
               <button
@@ -145,8 +145,8 @@ export default function TicketsPage() {
           />
         ) : (
           <>
-            {/* Header */}
-            <div className="grid grid-cols-[8px_1fr_auto_auto_auto] gap-4 px-5 py-2.5 border-b border-border bg-muted/30">
+            {/* Header — desktop uniquement */}
+            <div className="hidden sm:grid grid-cols-[8px_1fr_auto_auto_auto] gap-4 px-5 py-2.5 border-b border-border bg-muted/30">
               <span />
               <span className="text-xs font-semibold text-muted-foreground">TICKET</span>
               <span className="text-xs font-semibold text-muted-foreground hidden md:block">CLIENT</span>
@@ -164,56 +164,60 @@ export default function TicketsPage() {
                   !['RESOLVED', 'CLOSED'].includes(ticket.status);
 
                 return (
-                  <Link
-                    key={ticket.id}
-                    href={`/tickets/${ticket.id}`}
-                    className="grid grid-cols-[8px_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/50 transition-colors group"
-                  >
-                    {/* Bande priorité */}
-                    <div className={cn('h-full w-1.5 rounded-full', {
-                      'bg-red-500':    ticket.priority === 'CRITICAL',
-                      'bg-orange-400': ticket.priority === 'HIGH',
-                      'bg-blue-400':   ticket.priority === 'MEDIUM',
-                      'bg-gray-300':   ticket.priority === 'LOW',
-                    })} />
-
-                    {/* Titre + infos */}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                          {ticket.title}
-                        </p>
-                        {isOverdueSla && (
-                          <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
-                        )}
+                  <div key={ticket.id}>
+                    {/* Carte mobile */}
+                    <Link href={`/tickets/${ticket.id}`} className="sm:hidden flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors">
+                      <div className={cn('w-1 self-stretch rounded-full flex-shrink-0', {
+                        'bg-red-500':    ticket.priority === 'CRITICAL',
+                        'bg-orange-400': ticket.priority === 'HIGH',
+                        'bg-blue-400':   ticket.priority === 'MEDIUM',
+                        'bg-gray-300':   ticket.priority === 'LOW',
+                      })} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground truncate flex-1">{ticket.title}</p>
+                          {isOverdueSla && <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />}
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <Badge variant={pc.variant}>{pc.label}</Badge>
+                            <div className={cn('w-2 h-2 rounded-full', sc.color)} />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                          <span>{ticket.number}</span>
+                          {ticket.customer && <span>· {ticket.customer.name}</span>}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-xs text-muted-foreground">{ticket.number}</span>
-                        {ticket.assignedTo && (
-                          <span className="text-xs text-muted-foreground">
-                            → {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
-                          </span>
-                        )}
-                        <span className="text-xs text-muted-foreground">
-                          {formatRelativeTime(ticket.createdAt)}
-                        </span>
+                    </Link>
+
+                    {/* Ligne desktop */}
+                    <Link href={`/tickets/${ticket.id}`} className="hidden sm:grid grid-cols-[8px_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/50 transition-colors group">
+                      <div className={cn('h-full w-1.5 rounded-full', {
+                        'bg-red-500':    ticket.priority === 'CRITICAL',
+                        'bg-orange-400': ticket.priority === 'HIGH',
+                        'bg-blue-400':   ticket.priority === 'MEDIUM',
+                        'bg-gray-300':   ticket.priority === 'LOW',
+                      })} />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{ticket.title}</p>
+                          {isOverdueSla && <AlertTriangle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-xs text-muted-foreground">{ticket.number}</span>
+                          {ticket.assignedTo && (
+                            <span className="text-xs text-muted-foreground">→ {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}</span>
+                          )}
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(ticket.createdAt)}</span>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Client */}
-                    <span className="hidden md:block text-xs text-muted-foreground max-w-32 truncate">
-                      {ticket.customer?.name ?? '—'}
-                    </span>
-
-                    {/* Priorité */}
-                    <Badge variant={pc.variant}>{pc.label}</Badge>
-
-                    {/* Statut */}
-                    <div className="flex items-center gap-1.5">
-                      <div className={cn('w-2 h-2 rounded-full', sc.color)} />
-                      <span className="text-xs text-foreground hidden sm:block">{sc.label}</span>
-                    </div>
-                  </Link>
+                      <span className="hidden md:block text-xs text-muted-foreground max-w-32 truncate">{ticket.customer?.name ?? '—'}</span>
+                      <Badge variant={pc.variant}>{pc.label}</Badge>
+                      <div className="flex items-center gap-1.5">
+                        <div className={cn('w-2 h-2 rounded-full', sc.color)} />
+                        <span className="text-xs text-foreground">{sc.label}</span>
+                      </div>
+                    </Link>
+                  </div>
                 );
               })}
             </div>

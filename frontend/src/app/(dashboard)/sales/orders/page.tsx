@@ -59,7 +59,7 @@ export default function OrdersPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Référence, client…" className="w-56" />
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Référence, client…" className="w-full sm:w-56" />
           <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
             {FILTER_OPTIONS.map((f) => (
               <button key={f.value} onClick={() => { setStatus(f.value); setPage(1); }}
@@ -88,7 +88,8 @@ export default function OrdersPage() {
           <EmptyState icon={ShoppingCart} title="Aucune commande" description="Les commandes apparaîtront ici après conversion d'un devis." />
         ) : (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
+            {/* Header — desktop uniquement */}
+            <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
               {['RÉFÉRENCE','CLIENT','TOTAL TTC','DATE LIVRAISON','STATUT','ACTIONS'].map((h) => (
                 <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
               ))}
@@ -99,20 +100,43 @@ export default function OrdersPage() {
                 const nextStatus = STATUS_TRANSITIONS[order.status];
                 const isDelivered = order.status === 'DELIVERED';
                 return (
-                  <div key={order.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
-                    <Link href={`/sales/orders/${order.id}`} className="text-sm font-medium text-primary hover:underline">
-                      {order.number}
-                    </Link>
-                    <div>
-                      <p className="text-sm text-foreground">{order.customer?.name ?? '—'}</p>
-                      <p className="text-xs text-muted-foreground">{formatRelativeTime(order.createdAt)}</p>
+                  <div key={order.id}>
+                    {/* Carte mobile */}
+                    <div className="sm:hidden px-4 py-3 hover:bg-accent/30 transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <Link href={`/sales/orders/${order.id}`} className="text-sm font-medium text-primary hover:underline">{order.number}</Link>
+                        <Badge variant={sc.variant}>{sc.label}</Badge>
+                      </div>
+                      <p className="text-sm text-foreground mt-0.5">{order.customer?.name ?? '—'}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-sm font-semibold">{formatCurrency(order.totalTTC)}</span>
+                        <span className="text-xs text-muted-foreground">{order.deliveredAt ? formatDate(order.deliveredAt) : '—'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-2">
+                        {nextStatus && TRANSITION_LABELS[nextStatus] && (
+                          <button onClick={() => updateStatus.mutate({ id: order.id, status: nextStatus })} disabled={updateStatus.isPending} className="h-7 px-2.5 text-xs rounded-md border border-input hover:bg-accent transition-colors disabled:opacity-50">
+                            {TRANSITION_LABELS[nextStatus]}
+                          </button>
+                        )}
+                        {isDelivered && (
+                          <button onClick={() => generateInvoice.mutate(order.id)} disabled={generateInvoice.isPending} className="h-7 px-2.5 text-xs rounded-md bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-1 disabled:opacity-50">
+                            <FileText className="w-3 h-3" /> Facturer
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-sm font-semibold">{formatCurrency(order.totalTTC)}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {order.deliveredAt ? formatDate(order.deliveredAt) : '—'}
-                    </span>
-                    <Badge variant={sc.variant}>{sc.label}</Badge>
-                    <div className="flex items-center gap-1.5">
+
+                    {/* Ligne desktop */}
+                    <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                      <Link href={`/sales/orders/${order.id}`} className="text-sm font-medium text-primary hover:underline">{order.number}</Link>
+                      <div>
+                        <p className="text-sm text-foreground">{order.customer?.name ?? '—'}</p>
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(order.createdAt)}</p>
+                      </div>
+                      <span className="text-sm font-semibold">{formatCurrency(order.totalTTC)}</span>
+                      <span className="text-xs text-muted-foreground">{order.deliveredAt ? formatDate(order.deliveredAt) : '—'}</span>
+                      <Badge variant={sc.variant}>{sc.label}</Badge>
+                      <div className="flex items-center gap-1.5">
                       {nextStatus && (
                         <button
                           onClick={() => updateStatus.mutate({ id: order.id, status: nextStatus })}
@@ -135,6 +159,7 @@ export default function OrdersPage() {
                           Facture
                         </button>
                       )}
+                    </div>
                     </div>
                   </div>
                 );

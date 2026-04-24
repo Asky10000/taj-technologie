@@ -46,7 +46,7 @@ export default function StocksPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Produit, référence…" className="w-56" />
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Produit, référence…" className="w-full sm:w-56" />
           <button
             onClick={() => { setLowStock((p) => !p); setPage(1); }}
             className={cn(

@@ -45,7 +45,7 @@ export default function InvoicesPage() {
       {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3 flex-wrap">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Référence, client…" className="w-56" />
+          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Référence, client…" className="w-full sm:w-56" />
           <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
             {FILTER_OPTIONS.map((f) => (
               <button key={f.value} onClick={() => { setStatus(f.value); setPage(1); }}
@@ -74,7 +74,8 @@ export default function InvoicesPage() {
           <EmptyState icon={FileText} title="Aucune facture" description="Les factures apparaîtront ici." />
         ) : (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
+            {/* Header — desktop uniquement */}
+            <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
               {['RÉFÉRENCE','CLIENT','TOTAL TTC','PAYÉ','RESTE','ÉCHÉANCE','STATUT'].map((h) => (
                 <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
               ))}
@@ -83,40 +84,67 @@ export default function InvoicesPage() {
               {data.items.map((invoice) => {
                 const sc = STATUS_CONFIG[invoice.status];
                 const isOverdue = invoice.status === 'OVERDUE';
+                const canPay = !['PAID','CANCELLED','REFUNDED'].includes(invoice.status);
                 return (
-                  <div key={invoice.id} className={cn(
-                    'grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors',
-                    isOverdue && 'bg-red-50/50 dark:bg-red-950/20',
-                  )}>
-                    <div className="flex items-center gap-2">
-                      {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
-                      <Link href={`/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">
-                        {invoice.number}
-                      </Link>
+                  <div key={invoice.id}>
+                    {/* Carte mobile */}
+                    <div className={cn('sm:hidden px-4 py-3 hover:bg-accent/30 transition-colors', isOverdue && 'bg-red-50/50 dark:bg-red-950/20')}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
+                          <Link href={`/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">{invoice.number}</Link>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={sc.variant}>{sc.label}</Badge>
+                          {canPay && (
+                            <button onClick={() => { setPayModal(invoice.id); setPayAmount(invoice.remainingAmount); }} className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent transition-colors text-muted-foreground" title="Enregistrer un paiement">
+                              <CreditCard className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-sm text-foreground mt-0.5">{invoice.customer?.name ?? '—'}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs">
+                        <span className="font-semibold">{formatCurrency(invoice.totalTTC)}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className={cn('font-medium', invoice.remainingAmount > 0 ? (isOverdue ? 'text-destructive' : 'text-foreground') : 'text-emerald-600')}>
+                          Reste : {formatCurrency(invoice.remainingAmount)}
+                        </span>
+                        {invoice.dueDate && (
+                          <>
+                            <span className="text-muted-foreground">·</span>
+                            <span className={cn(isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>{formatDate(invoice.dueDate)}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-foreground">{invoice.customer?.name ?? '—'}</p>
-                      <p className="text-xs text-muted-foreground">{formatRelativeTime(invoice.createdAt)}</p>
-                    </div>
-                    <span className="text-sm font-semibold">{formatCurrency(invoice.totalTTC)}</span>
-                    <span className="text-sm text-emerald-600">{formatCurrency(invoice.paidAmount)}</span>
-                    <span className={cn('text-sm font-medium', invoice.remainingAmount > 0 ? (isOverdue ? 'text-destructive' : 'text-foreground') : 'text-emerald-600')}>
-                      {formatCurrency(invoice.remainingAmount)}
-                    </span>
-                    <span className={cn('text-xs', isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
-                      {invoice.dueDate ? formatDate(invoice.dueDate) : '—'}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={sc.variant}>{sc.label}</Badge>
-                      {!['PAID','CANCELLED','REFUNDED'].includes(invoice.status) && (
-                        <button
-                          onClick={() => { setPayModal(invoice.id); setPayAmount(invoice.remainingAmount); }}
-                          className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent hover:text-foreground transition-colors text-muted-foreground"
-                          title="Enregistrer un paiement"
-                        >
-                          <CreditCard className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+
+                    {/* Ligne desktop */}
+                    <div className={cn('hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors', isOverdue && 'bg-red-50/50 dark:bg-red-950/20')}>
+                      <div className="flex items-center gap-2">
+                        {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
+                        <Link href={`/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">{invoice.number}</Link>
+                      </div>
+                      <div>
+                        <p className="text-sm text-foreground">{invoice.customer?.name ?? '—'}</p>
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(invoice.createdAt)}</p>
+                      </div>
+                      <span className="text-sm font-semibold">{formatCurrency(invoice.totalTTC)}</span>
+                      <span className="text-sm text-emerald-600">{formatCurrency(invoice.paidAmount)}</span>
+                      <span className={cn('text-sm font-medium', invoice.remainingAmount > 0 ? (isOverdue ? 'text-destructive' : 'text-foreground') : 'text-emerald-600')}>
+                        {formatCurrency(invoice.remainingAmount)}
+                      </span>
+                      <span className={cn('text-xs', isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+                        {invoice.dueDate ? formatDate(invoice.dueDate) : '—'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={sc.variant}>{sc.label}</Badge>
+                        {canPay && (
+                          <button onClick={() => { setPayModal(invoice.id); setPayAmount(invoice.remainingAmount); }} className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent hover:text-foreground transition-colors text-muted-foreground" title="Enregistrer un paiement">
+                            <CreditCard className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

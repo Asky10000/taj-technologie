@@ -60,7 +60,7 @@ export default function ProspectsPage() {
               </button>
             ))}
           </div>
-          <SearchInput value={search} onChange={setSearch} placeholder="Rechercher un prospect…" className="w-56" />
+          <SearchInput value={search} onChange={setSearch} placeholder="Rechercher un prospect…" className="w-full sm:w-56" />
         </div>
         <button
           onClick={() => setShowModal(true)}

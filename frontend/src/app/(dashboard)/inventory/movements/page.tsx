@@ -42,7 +42,7 @@ export default function MovementsPage() {
     <div className="space-y-5">
       {/* Barre d'outils */}
       <div className="flex items-center gap-3 flex-wrap">
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Produit, référence…" className="w-56" />
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Produit, référence…" className="w-full sm:w-56" />
         <div className="flex items-center gap-1 border border-input rounded-md p-0.5 bg-background">
           {FILTER_OPTIONS.map((f) => (
             <button key={f.value} onClick={() => { setType(f.value); setPage(1); }}
