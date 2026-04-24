@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Package, Loader2, Pencil, Trash2, Warehouse } from 'lucide-react';
+import { Plus, Package, Loader2, Pencil, Trash2, Warehouse, Check, FolderPlus } from 'lucide-react';
 import Link from 'next/link';
 import {
   useProductsList, useCreateProduct, useUpdateProduct,
-  useDeleteProduct, useUpdateProductStatus, useCategories,
+  useDeleteProduct, useUpdateProductStatus, useCategories, useCreateCategory,
 } from '@/hooks/useProducts';
 import { useStocks } from '@/hooks/useInventory';
 import { Badge }       from '@/components/ui/Badge';
@@ -79,6 +79,8 @@ export default function ProductsPage() {
   const [editing,   setEditing]   = useState<Product | null>(null);
   const [form,      setForm]      = useState<CreateProductPayload>(emptyForm());
   const [deleting,  setDeleting]  = useState<Product | null>(null);
+  const [newCatName, setNewCatName] = useState('');
+  const [showNewCat, setShowNewCat] = useState(false);
 
   const { data, isLoading, isFetching } = useProductsList({
     page, limit: 20,
@@ -93,10 +95,11 @@ export default function ProductsPage() {
     (stocksData?.items ?? []).map((s) => [s.productId, s.availableQuantity]),
   );
 
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
-  const deleteMutation = useDeleteProduct();
-  const statusMutation = useUpdateProductStatus();
+  const createMutation    = useCreateProduct();
+  const updateMutation    = useUpdateProduct();
+  const deleteMutation    = useDeleteProduct();
+  const statusMutation    = useUpdateProductStatus();
+  const createCatMutation = useCreateCategory();
 
   const handleSearch = (v: string) => { setSearch(v); setPage(1); };
 
@@ -397,7 +400,57 @@ export default function ProductsPage() {
                 className={inputCls} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Catégorie</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Catégorie</label>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewCat((v) => !v); setNewCatName(''); }}
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                >
+                  <FolderPlus className="w-3.5 h-3.5" />
+                  Nouvelle
+                </button>
+              </div>
+
+              {/* Création inline */}
+              {showNewCat && (
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="Nom de la catégorie"
+                    className="flex-1 h-8 px-2 rounded-md border border-primary bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!newCatName.trim()) return;
+                        const cat = await createCatMutation.mutateAsync(newCatName.trim());
+                        set('categoryId', cat.id);
+                        setNewCatName('');
+                        setShowNewCat(false);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={!newCatName.trim() || createCatMutation.isPending}
+                    onClick={async () => {
+                      if (!newCatName.trim()) return;
+                      const cat = await createCatMutation.mutateAsync(newCatName.trim());
+                      set('categoryId', cat.id);
+                      setNewCatName('');
+                      setShowNewCat(false);
+                    }}
+                    className="h-8 px-3 rounded-md bg-primary text-white text-xs disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {createCatMutation.isPending
+                      ? <Loader2 className="w-3 h-3 animate-spin" />
+                      : <Check className="w-3 h-3" />}
+                  </button>
+                </div>
+              )}
+
               <select value={form.categoryId ?? ''} onChange={(e) => set('categoryId', e.target.value)}
                 className={selectCls}>
                 <option value="">— Sans catégorie —</option>
@@ -405,6 +458,11 @@ export default function ProductsPage() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+              {(!categories || categories.length === 0) && (
+                <p className="text-xs text-muted-foreground">
+                  Aucune catégorie — cliquez sur <strong>Nouvelle</strong> pour en créer une.
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Gestion du stock</label>

@@ -22,6 +22,23 @@ export function useCategories() {
   });
 }
 
+export function useCreateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) =>
+      api.post<ApiResponse<ProductCategory>>('/products/categories', { name })
+         .then((r) => r.data.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: productKeys.categories() });
+      toast.success('Catégorie créée');
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur'));
+    },
+  });
+}
+
 // ── Produits ──────────────────────────────────────────────────────
 
 export function useProductsList(params: {
