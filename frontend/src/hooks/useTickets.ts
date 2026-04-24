@@ -65,8 +65,13 @@ export function useCreateTicket() {
 export function useUpdateTicketStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) =>
-      api.patch<ApiResponse<Ticket>>(`/tickets/${id}/status`, { status }).then((r) => r.data.data),
+    mutationFn: ({ id, status, resolutionNotes, timeSpentMinutes }: {
+      id: string;
+      status: TicketStatus;
+      resolutionNotes?: string;
+      timeSpentMinutes?: number;
+    }) =>
+      api.patch<ApiResponse<Ticket>>(`/tickets/${id}/status`, { status, resolutionNotes, timeSpentMinutes }).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ticketKeys.detail(id) });
       qc.invalidateQueries({ queryKey: ['tickets'] });

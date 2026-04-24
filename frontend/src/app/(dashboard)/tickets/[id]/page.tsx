@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Clock, CheckCircle, AlertTriangle, User,
-  MessageSquare, Lock, Loader2, Star,
+  ArrowLeft, Clock, CheckCircle, AlertTriangle,
+  Lock, Loader2, Star, X,
 } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 import { useTicket, useUpdateTicketStatus, useAddComment, useRateTicket } from '@/hooks/useTickets';
 import { Badge } from '@/components/ui/Badge';
 import { formatDate, formatRelativeTime, cn, getInitials } from '@/lib/utils';
@@ -49,6 +50,11 @@ export default function TicketDetailPage() {
   const [isInternal, setIsInternal]     = useState(false);
   const [timeSpent, setTimeSpent]       = useState(0);
   const [hoverStar, setHoverStar]       = useState(0);
+
+  // Modal résolution
+  const [resolveModal, setResolveModal]       = useState<TicketStatus | null>(null);
+  const [resolutionNotes, setResolutionNotes] = useState('');
+  const [resolveTime, setResolveTime]         = useState(0);
 
   const { data: ticket, isLoading }     = useTicket(id);
   const updateStatus                    = useUpdateTicketStatus();
@@ -102,22 +108,33 @@ export default function TicketDetailPage() {
         </div>
 
         {/* Transitions de statut */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {allowedTransitions.map((next) => (
-            <button
-              key={next}
-              onClick={() => updateStatus.mutate({ id, status: next })}
-              disabled={updateStatus.isPending}
-              className={cn(
-                'h-8 px-3 rounded-md text-xs font-medium transition-colors border',
-                next === 'RESOLVED' || next === 'CLOSED'
-                  ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
-                  : 'border-input hover:bg-accent',
-              )}
-            >
-              {STATUS_LABELS[next]}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+          {allowedTransitions.map((next) => {
+            const needsNotes = next === 'RESOLVED' || next === 'CLOSED';
+            return (
+              <button
+                key={next}
+                onClick={() => {
+                  if (needsNotes) {
+                    setResolutionNotes('');
+                    setResolveTime(0);
+                    setResolveModal(next);
+                  } else {
+                    updateStatus.mutate({ id, status: next });
+                  }
+                }}
+                disabled={updateStatus.isPending}
+                className={cn(
+                  'h-8 px-3 rounded-md text-xs font-medium transition-colors border',
+                  needsNotes
+                    ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
+                    : 'border-input hover:bg-accent',
+                )}
+              >
+                {STATUS_LABELS[next]}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -316,6 +333,81 @@ export default function TicketDetailPage() {
           )}
         </div>
       </div>
+      {/* ── Modal résolution / fermeture ── */}
+      <Modal
+        open={!!resolveModal}
+        onClose={() => setResolveModal(null)}
+        title={resolveModal === 'RESOLVED' ? '✅ Résoudre le ticket' : '🔒 Fermer le ticket'}
+        size="sm"
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!resolveModal) return;
+            await updateStatus.mutateAsync({
+              id,
+              status: resolveModal,
+              resolutionNotes,
+              timeSpentMinutes: resolveTime || undefined,
+            });
+            setResolveModal(null);
+          }}
+          className="space-y-4"
+        >
+          <p className="text-sm text-muted-foreground">
+            {resolveModal === 'RESOLVED'
+              ? 'Décrivez comment le problème a été résolu. Ces notes seront conservées dans le dossier du ticket.'
+              : 'Ajoutez une note de clôture avant de fermer définitivement ce ticket.'}
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">
+              Notes de résolution <span className="text-destructive">*</span>
+            </label>
+            <textarea
+              required
+              rows={4}
+              value={resolutionNotes}
+              onChange={(e) => setResolutionNotes(e.target.value)}
+              placeholder="Ex : Remplacement de la cartouche effectué, imprimante testée et fonctionnelle…"
+              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" /> Temps passé (minutes)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={5}
+              value={resolveTime || ''}
+              onChange={(e) => setResolveTime(+e.target.value)}
+              placeholder="Optionnel"
+              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setResolveModal(null)}
+              className="h-9 px-4 rounded-md border text-sm hover:bg-accent transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={!resolutionNotes.trim() || updateStatus.isPending}
+              className="h-9 px-5 rounded-md bg-emerald-600 text-white text-sm disabled:opacity-50 flex items-center gap-2 hover:bg-emerald-700 transition-colors"
+            >
+              {updateStatus.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {resolveModal === 'RESOLVED' ? 'Marquer comme résolu' : 'Fermer le ticket'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
