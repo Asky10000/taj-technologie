@@ -1,28 +1,30 @@
-export type CustomerType   = 'COMPANY' | 'INDIVIDUAL';
-export type CustomerStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+export type CustomerType   = 'COMPANY' | 'INDIVIDUAL' | 'ASSOCIATION' | 'PUBLIC';
+export type CustomerStatus = 'ACTIVE' | 'INACTIVE' | 'BLACKLISTED' | 'ARCHIVED';
 
 export type ProspectStatus =
   | 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL_SENT'
-  | 'NEGOTIATION' | 'CONVERTED' | 'LOST';
+  | 'NEGOTIATION' | 'WON' | 'LOST' | 'ON_HOLD';
 export type ProspectSource =
-  | 'WEBSITE' | 'REFERRAL' | 'COLD_CALL' | 'EMAIL'
-  | 'SOCIAL_MEDIA' | 'EVENT' | 'OTHER';
+  | 'WEBSITE' | 'REFERRAL' | 'COLD_CALL' | 'EMAIL_CAMPAIGN'
+  | 'SOCIAL_MEDIA' | 'TRADE_SHOW' | 'PARTNER' | 'OTHER';
 
 export type InteractionType =
-  | 'CALL' | 'EMAIL' | 'MEETING' | 'DEMO' | 'QUOTE_SENT'
-  | 'CONTRACT_SIGNED' | 'SUPPORT' | 'OTHER';
+  | 'CALL' | 'EMAIL' | 'MEETING' | 'VISIT' | 'NOTE'
+  | 'PROPOSAL' | 'COMPLAINT' | 'OTHER';
 
 export interface Customer {
   id:               string;
   code:             string;
   type:             CustomerType;
   status:           CustomerStatus;
-  companyName:      string;
+  name:             string;
+  legalName?:       string;
   firstName?:       string;
   lastName?:        string;
   email?:           string;
   phone?:           string;
-  address?:         string;
+  addressLine1?:    string;
+  addressLine2?:    string;
   city?:            string;
   postalCode?:      string;
   country?:         string;
@@ -62,7 +64,7 @@ export interface Interaction {
 
 export interface Prospect {
   id:              string;
-  companyName:     string;
+  name:            string;
   firstName?:      string;
   lastName?:       string;
   email?:          string;

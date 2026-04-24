@@ -54,7 +54,8 @@ export function useCreateCustomer() {
       toast.success('Client créé avec succès');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur lors de la création');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur lors de la création'));
     },
   });
 }
@@ -70,7 +71,8 @@ export function useUpdateCustomer(id: string) {
       toast.success('Client mis à jour');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur lors de la mise à jour');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur lors de la mise à jour'));
     },
   });
 }
@@ -84,7 +86,8 @@ export function useDeleteCustomer() {
       toast.success('Client supprimé');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Impossible de supprimer ce client');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Impossible de supprimer ce client'));
     },
   });
 }
@@ -114,7 +117,8 @@ export function useCreateContact(customerId: string) {
       toast.success('Contact ajouté');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur'));
     },
   });
 }
@@ -144,7 +148,8 @@ export function useCreateInteraction(customerId: string) {
       toast.success('Interaction enregistrée');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur'));
     },
   });
 }
@@ -199,7 +204,8 @@ export function useCreateProspect() {
       toast.success('Prospect créé avec succès');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur lors de la création');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur lors de la création'));
     },
   });
 }
@@ -216,7 +222,8 @@ export function useUpdateProspectStatus() {
       toast.success('Statut mis à jour');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur'));
     },
   });
 }
@@ -232,7 +239,8 @@ export function useConvertProspect() {
       toast.success('Prospect converti en client');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message ?? 'Erreur lors de la conversion');
+      const msg = err?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg[0] : (msg ?? 'Erreur lors de la conversion'));
     },
   });
 }

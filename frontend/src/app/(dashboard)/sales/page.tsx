@@ -109,7 +109,7 @@ export default function QuotesPage() {
                   <div key={quote.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
                     <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.number}</Link>
                     <div>
-                      <p className="text-sm text-foreground">{quote.customer?.companyName ?? '—'}</p>
+                      <p className="text-sm text-foreground">{quote.customer?.name ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(quote.createdAt)}</p>
                     </div>
                     <span className="text-sm font-semibold">{formatCurrency(quote.totalTTC)}</span>

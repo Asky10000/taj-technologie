@@ -19,25 +19,25 @@ import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import type { InteractionType } from '@/types/crm.types';
 
 const INTERACTION_ICONS: Record<InteractionType, string> = {
-  CALL:             '📞',
-  EMAIL:            '✉️',
-  MEETING:          '🤝',
-  DEMO:             '💻',
-  QUOTE_SENT:       '📄',
-  CONTRACT_SIGNED:  '✍️',
-  SUPPORT:          '🛠️',
-  OTHER:            '💬',
+  CALL:      '📞',
+  EMAIL:     '✉️',
+  MEETING:   '🤝',
+  VISIT:     '🏢',
+  NOTE:      '📝',
+  PROPOSAL:  '📄',
+  COMPLAINT: '⚠️',
+  OTHER:     '💬',
 };
 
 const INTERACTION_LABELS: Record<InteractionType, string> = {
-  CALL:             'Appel',
-  EMAIL:            'Email',
-  MEETING:          'Réunion',
-  DEMO:             'Démo',
-  QUOTE_SENT:       'Devis envoyé',
-  CONTRACT_SIGNED:  'Contrat signé',
-  SUPPORT:          'Support',
-  OTHER:            'Autre',
+  CALL:      'Appel',
+  EMAIL:     'Email',
+  MEETING:   'Réunion',
+  VISIT:     'Visite',
+  NOTE:      'Note',
+  PROPOSAL:  'Proposition',
+  COMPLAINT: 'Réclamation',
+  OTHER:     'Autre',
 };
 
 export default function CustomerDetailPage() {
@@ -60,7 +60,7 @@ export default function CustomerDetailPage() {
   const createInteraction               = useCreateInteraction(id);
 
   const handleDelete = async () => {
-    if (!confirm(`Supprimer le client "${customer?.companyName}" ?`)) return;
+    if (!confirm(`Supprimer le client "${customer?.name}" ?`)) return;
     await deleteMutation.mutateAsync(id);
     router.push('/crm');
   };
@@ -87,7 +87,7 @@ export default function CustomerDetailPage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h2 className="text-base font-semibold text-foreground">{customer.companyName}</h2>
+            <h2 className="text-base font-semibold text-foreground">{customer.name}</h2>
             <p className="text-xs text-muted-foreground">{customer.code}</p>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function CustomerDetailPage() {
                 { icon: Building2, label: 'Type',       value: customer.type === 'COMPANY' ? 'Entreprise' : 'Particulier' },
                 { icon: Mail,      label: 'Email',      value: customer.email },
                 { icon: Phone,     label: 'Téléphone',  value: customer.phone },
-                { icon: MapPin,    label: 'Adresse',    value: [customer.address, customer.postalCode, customer.city].filter(Boolean).join(', ') },
+                { icon: MapPin,    label: 'Adresse',    value: [customer.addressLine1, customer.postalCode, customer.city].filter(Boolean).join(', ') },
                 { icon: CreditCard, label: 'N° TVA',   value: customer.taxId },
                 { icon: Calendar,  label: 'Client depuis', value: formatDate(customer.createdAt) },
               ].filter((f) => f.value).map((field) => (

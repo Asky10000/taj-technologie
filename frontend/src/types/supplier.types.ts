@@ -8,13 +8,15 @@ export type PurchaseOrderStatus =
 
 export interface Supplier {
   id: string;
-  companyName: string;
-  contactName?: string;
+  code: string;
+  name: string;
   email?: string;
   phone?: string;
   address?: string;
-  siret?: string;
-  paymentTerms?: number;
+  city?: string;
+  postalCode?: string;
+  taxId?: string;
+  paymentTermsDays: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;

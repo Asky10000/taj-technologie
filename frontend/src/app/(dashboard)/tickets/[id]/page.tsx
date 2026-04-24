@@ -237,7 +237,7 @@ export default function TicketDetailPage() {
               { label: 'Statut',    value: STATUS_LABELS[ticket.status] },
               { label: 'Priorité',  value: ticket.priority },
               { label: 'Catégorie', value: ticket.category },
-              { label: 'Client',    value: ticket.customer?.companyName ?? '—' },
+              { label: 'Client',    value: ticket.customer?.name ?? '—' },
               { label: 'Assigné à', value: ticket.assignedTo ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}` : 'Non assigné' },
               { label: 'Temps total', value: `${Math.round(ticket.totalTimeMinutes / 60 * 10) / 10} h` },
             ].map((item) => (

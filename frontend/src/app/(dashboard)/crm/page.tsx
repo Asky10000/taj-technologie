@@ -13,10 +13,10 @@ import { cn }                  from '@/lib/utils';
 import type { CustomerStatus } from '@/types/crm.types';
 
 const STATUS_FILTERS: { label: string; value: CustomerStatus | '' }[] = [
-  { label: 'Tous',      value: ''         },
-  { label: 'Actifs',    value: 'ACTIVE'   },
-  { label: 'Inactifs',  value: 'INACTIVE' },
-  { label: 'Bloqués',   value: 'BLOCKED'  },
+  { label: 'Tous',       value: ''            },
+  { label: 'Actifs',     value: 'ACTIVE'      },
+  { label: 'Inactifs',   value: 'INACTIVE'    },
+  { label: 'Bloqués',    value: 'BLACKLISTED' },
 ];
 
 export default function CustomersPage() {
@@ -128,7 +128,7 @@ export default function CustomersPage() {
                   {/* Nom + code */}
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                      {customer.companyName}
+                      {customer.name}
                     </p>
                     <p className="text-xs text-muted-foreground">{customer.code}</p>
                   </div>

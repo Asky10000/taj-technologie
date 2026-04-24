@@ -44,9 +44,10 @@ export function Badge({
 // Helpers pour les statuts métier
 export function CustomerStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: BadgeVariant }> = {
-    ACTIVE:   { label: 'Actif',    variant: 'success' },
-    INACTIVE: { label: 'Inactif',  variant: 'warning' },
-    BLOCKED:  { label: 'Bloqué',   variant: 'danger'  },
+    ACTIVE:     { label: 'Actif',      variant: 'success' },
+    INACTIVE:   { label: 'Inactif',    variant: 'warning' },
+    BLACKLISTED:{ label: 'Bloqué',     variant: 'danger'  },
+    ARCHIVED:   { label: 'Archivé',    variant: 'default' },
   };
   const { label, variant } = map[status] ?? { label: status, variant: 'default' };
   return <Badge variant={variant}>{label}</Badge>;
@@ -54,13 +55,14 @@ export function CustomerStatusBadge({ status }: { status: string }) {
 
 export function ProspectStatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: BadgeVariant }> = {
-    NEW:           { label: 'Nouveau',          variant: 'info'    },
-    CONTACTED:     { label: 'Contacté',         variant: 'info'    },
-    QUALIFIED:     { label: 'Qualifié',         variant: 'purple'  },
-    PROPOSAL_SENT: { label: 'Devis envoyé',     variant: 'warning' },
-    NEGOTIATION:   { label: 'Négociation',      variant: 'warning' },
-    CONVERTED:     { label: 'Converti',         variant: 'success' },
-    LOST:          { label: 'Perdu',            variant: 'danger'  },
+    NEW:           { label: 'Nouveau',      variant: 'info'    },
+    CONTACTED:     { label: 'Contacté',     variant: 'info'    },
+    QUALIFIED:     { label: 'Qualifié',     variant: 'purple'  },
+    PROPOSAL_SENT: { label: 'Devis envoyé', variant: 'warning' },
+    NEGOTIATION:   { label: 'Négociation',  variant: 'warning' },
+    WON:           { label: 'Gagné',        variant: 'success' },
+    LOST:          { label: 'Perdu',        variant: 'danger'  },
+    ON_HOLD:       { label: 'En attente',   variant: 'default' },
   };
   const { label, variant } = map[status] ?? { label: status, variant: 'default' };
   return <Badge variant={variant}>{label}</Badge>;

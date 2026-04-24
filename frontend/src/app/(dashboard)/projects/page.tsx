@@ -136,7 +136,7 @@ export default function ProjectsPage() {
                     </span>
                     {project.customer && (
                       <span className="text-xs text-muted-foreground truncate">
-                        {project.customer.companyName}
+                        {project.customer.name}
                       </span>
                     )}
                   </div>

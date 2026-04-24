@@ -95,7 +95,7 @@ export default function InvoicesPage() {
                       </Link>
                     </div>
                     <div>
-                      <p className="text-sm text-foreground">{invoice.customer?.companyName ?? '—'}</p>
+                      <p className="text-sm text-foreground">{invoice.customer?.name ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(invoice.createdAt)}</p>
                     </div>
                     <span className="text-sm font-semibold">{formatCurrency(invoice.totalTTC)}</span>

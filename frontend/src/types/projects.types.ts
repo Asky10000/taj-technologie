@@ -66,7 +66,7 @@ export interface Project {
   tags:            string[];
   customerId?:     string;
   managerId?:      string;
-  customer?:       { id: string; companyName: string };
+  customer?:       { id: string; name: string };
   manager?:        { id: string; firstName: string; lastName: string };
   members?:        ProjectMember[];
   tasks?:          ProjectTask[];

@@ -137,7 +137,7 @@ export default function PurchaseOrdersPage() {
                   <div key={order.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
                     <span className="text-sm font-medium text-primary font-mono">{order.code}</span>
                     <div>
-                      <p className="text-sm text-foreground">{order.supplier?.companyName ?? '—'}</p>
+                      <p className="text-sm text-foreground">{order.supplier?.name ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(order.createdAt)}</p>
                     </div>
                     <span className="text-sm font-semibold">{formatCurrency(order.totalTTC)}</span>

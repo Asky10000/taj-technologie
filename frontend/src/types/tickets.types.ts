@@ -22,7 +22,7 @@ export interface Ticket {
   priority:             TicketPriority;
   category:             TicketCategory;
   customerId?:          string;
-  customer?:            { id: string; companyName: string; code: string };
+  customer?:            { id: string; name: string; code: string };
   assignedToId?:        string;
   assignedTo?:          { id: string; firstName: string; lastName: string };
   slaResponseDueAt?:    string;

@@ -22,7 +22,7 @@ export default function ProspectsPage() {
   const [tab, setTab]         = useState<'list' | 'pipeline'>('pipeline');
   const [showModal, setShowModal] = useState(false);
   const [newProspect, setNewProspect] = useState({
-    companyName: '', email: '', phone: '', estimatedBudget: 0, source: 'OTHER',
+    name: '', email: '', phone: '', estimatedBudget: 0, source: 'OTHER',
   });
 
   const { data: prospectsData, isLoading } = useProspects({ search: search || undefined, limit: 100 });
@@ -127,7 +127,7 @@ export default function ProspectsPage() {
                     >
                       <div>
                         <p className="text-sm font-medium text-foreground line-clamp-1">
-                          {prospect.companyName}
+                          {prospect.name}
                         </p>
                         {prospect.email && (
                           <p className="text-xs text-muted-foreground truncate">{prospect.email}</p>
@@ -176,7 +176,7 @@ export default function ProspectsPage() {
                           {stage.status === 'NEGOTIATION' && (
                             <button
                               onClick={() => {
-                                if (confirm(`Convertir "${prospect.companyName}" en client ?`)) {
+                                if (confirm(`Convertir "${prospect.name}" en client ?`)) {
                                   convertMutation.mutate(prospect.id);
                                 }
                               }}
@@ -212,7 +212,7 @@ export default function ProspectsPage() {
                     <Users className="w-4 h-4 text-violet-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{prospect.companyName}</p>
+                    <p className="text-sm font-medium text-foreground">{prospect.name}</p>
                     <p className="text-xs text-muted-foreground">{prospect.email}</p>
                   </div>
                   <div className="hidden sm:block">
@@ -234,12 +234,12 @@ export default function ProspectsPage() {
             e.preventDefault();
             await createMutation.mutateAsync(newProspect as any);
             setShowModal(false);
-            setNewProspect({ companyName: '', email: '', phone: '', estimatedBudget: 0, source: 'OTHER' });
+            setNewProspect({ name: '', email: '', phone: '', estimatedBudget: 0, source: 'OTHER' });
           }}
           className="space-y-4"
         >
           {[
-            { key: 'companyName', label: 'Raison sociale', required: true, type: 'text' },
+            { key: 'name', label: 'Raison sociale', required: true, type: 'text' },
             { key: 'email',       label: 'Email',           required: false, type: 'email' },
             { key: 'phone',       label: 'Téléphone',       required: false, type: 'tel' },
           ].map((f) => (

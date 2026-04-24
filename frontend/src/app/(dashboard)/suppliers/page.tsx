@@ -10,7 +10,7 @@ import { Modal }       from '@/components/ui/Modal';
 import { formatRelativeTime } from '@/lib/utils';
 import type { Supplier } from '@/types/supplier.types';
 
-const EMPTY_FORM = { companyName: '', contactName: '', email: '', phone: '', address: '', siret: '', paymentTerms: 30, notes: '' };
+const EMPTY_FORM = { name: '', email: '', phone: '', address: '', taxId: '', paymentTermsDays: 30, notes: '' };
 
 export default function SuppliersPage() {
   const [page,   setPage]   = useState(1);
@@ -25,14 +25,13 @@ export default function SuppliersPage() {
   const openCreate = () => { setForm(EMPTY_FORM); setModal('create'); };
   const openEdit   = (s: Supplier) => {
     setForm({
-      companyName:  s.companyName,
-      contactName:  s.contactName  ?? '',
-      email:        s.email        ?? '',
-      phone:        s.phone        ?? '',
-      address:      s.address      ?? '',
-      siret:        s.siret        ?? '',
-      paymentTerms: s.paymentTerms ?? 30,
-      notes:        s.notes        ?? '',
+      name:             s.name,
+      email:            s.email            ?? '',
+      phone:            s.phone            ?? '',
+      address:          s.address          ?? '',
+      taxId:            s.taxId            ?? '',
+      paymentTermsDays: s.paymentTermsDays ?? 30,
+      notes:            s.notes            ?? '',
     });
     setModal(s);
   };
@@ -41,7 +40,7 @@ export default function SuppliersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...form, paymentTerms: Number(form.paymentTerms) };
+    const payload = { ...form, paymentTermsDays: Number(form.paymentTermsDays) };
     if (isEditing) {
       await updateMutation.mutateAsync({ id: (modal as Supplier).id, ...payload });
     } else {
@@ -94,11 +93,8 @@ export default function SuppliersPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                      {supplier.companyName}
+                      {supplier.name}
                     </p>
-                    {supplier.contactName && (
-                      <p className="text-xs text-muted-foreground truncate">{supplier.contactName}</p>
-                    )}
                   </div>
                 </div>
                 <div className="mt-3 space-y-1.5">
@@ -114,10 +110,10 @@ export default function SuppliersPage() {
                       <span>{supplier.phone}</span>
                     </div>
                   )}
-                  {supplier.paymentTerms && (
+                  {supplier.paymentTermsDays > 0 && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>Délai {supplier.paymentTerms} j</span>
+                      <span>Délai {supplier.paymentTermsDays} j</span>
                     </div>
                   )}
                 </div>
@@ -137,17 +133,12 @@ export default function SuppliersPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-sm font-medium">Raison sociale <span className="text-destructive">*</span></label>
-              <input required value={form.companyName} onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))}
+              <input required value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Contact</label>
-              <input value={form.contactName} onChange={(e) => setForm((p) => ({ ...p, contactName: e.target.value }))}
-                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">SIRET</label>
-              <input value={form.siret} onChange={(e) => setForm((p) => ({ ...p, siret: e.target.value }))}
+              <label className="text-sm font-medium">SIRET / N° fiscal</label>
+              <input value={form.taxId} onChange={(e) => setForm((p) => ({ ...p, taxId: e.target.value }))}
                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div className="space-y-1.5">
@@ -162,8 +153,8 @@ export default function SuppliersPage() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Délai de paiement (jours)</label>
-              <input type="number" min={0} value={form.paymentTerms}
-                onChange={(e) => setForm((p) => ({ ...p, paymentTerms: +e.target.value }))}
+              <input type="number" min={0} value={form.paymentTermsDays}
+                onChange={(e) => setForm((p) => ({ ...p, paymentTermsDays: +e.target.value }))}
                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div className="space-y-1.5 sm:col-span-2">

@@ -20,7 +20,7 @@ export interface Quote {
   number:       string;
   status:       QuoteStatus;
   customerId:   string;
-  customer?:    { id: string; companyName: string; code: string };
+  customer?:    { id: string; name: string; code: string };
   validUntil?:  string;
   notes?:       string;
   globalDiscount: number;
@@ -37,7 +37,7 @@ export interface Order {
   number:      string;
   status:      OrderStatus;
   customerId:  string;
-  customer?:   { id: string; companyName: string; code: string };
+  customer?:   { id: string; name: string; code: string };
   quoteId?:    string;
   deliveredAt?: string;
   notes?:      string;
@@ -53,7 +53,7 @@ export interface Invoice {
   number:        string;
   status:        InvoiceStatus;
   customerId:    string;
-  customer?:     { id: string; companyName: string; code: string };
+  customer?:     { id: string; name: string; code: string };
   orderId?:      string;
   dueDate?:      string;
   paidAmount:    number;

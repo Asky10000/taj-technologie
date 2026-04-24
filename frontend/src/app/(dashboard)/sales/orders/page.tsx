@@ -104,7 +104,7 @@ export default function OrdersPage() {
                       {order.number}
                     </Link>
                     <div>
-                      <p className="text-sm text-foreground">{order.customer?.companyName ?? '—'}</p>
+                      <p className="text-sm text-foreground">{order.customer?.name ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(order.createdAt)}</p>
                     </div>
                     <span className="text-sm font-semibold">{formatCurrency(order.totalTTC)}</span>

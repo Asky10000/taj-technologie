@@ -10,11 +10,11 @@ import { cn } from '@/lib/utils';
 import type { Customer } from '@/types/crm.types';
 
 const schema = z.object({
-  companyName:      z.string().min(2, 'Nom requis (min 2 caractères)'),
-  type:             z.enum(['COMPANY', 'INDIVIDUAL']),
+  name:             z.string().min(2, 'Nom requis (min 2 caractères)'),
+  type:             z.enum(['COMPANY', 'INDIVIDUAL', 'ASSOCIATION', 'PUBLIC']),
   email:            z.string().email('Email invalide').optional().or(z.literal('')),
   phone:            z.string().optional(),
-  address:          z.string().optional(),
+  addressLine1:     z.string().optional(),
   city:             z.string().optional(),
   postalCode:       z.string().optional(),
   taxId:            z.string().optional(),
@@ -72,11 +72,11 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
     resolver: zodResolver(schema),
     defaultValues: customer
       ? {
-          companyName:      customer.companyName,
+          name:             customer.name,
           type:             customer.type,
           email:            customer.email ?? '',
           phone:            customer.phone ?? '',
-          address:          customer.address ?? '',
+          addressLine1:     customer.addressLine1 ?? '',
           city:             customer.city ?? '',
           postalCode:       customer.postalCode ?? '',
           taxId:            customer.taxId ?? '',
@@ -84,7 +84,7 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
           paymentTermsDays: customer.paymentTermsDays,
           notes:            customer.notes ?? '',
         }
-      : { type: 'COMPANY', creditLimit: 0, paymentTermsDays: 30 },
+      : { type: 'COMPANY' as const, creditLimit: 0, paymentTermsDays: 30 },
   });
 
   const isPending = create.isPending || update.isPending;
@@ -108,11 +108,11 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Raison sociale / Nom" error={errors.companyName?.message} required>
+          <Field label="Raison sociale / Nom" error={errors.name?.message} required>
             <input
-              {...register('companyName')}
+              {...register('name')}
               placeholder="Ex: Mairie de Paris"
-              className={inputClass(errors.companyName?.message)}
+              className={inputClass(errors.name?.message)}
             />
           </Field>
 
@@ -141,11 +141,11 @@ export function CustomerModal({ open, onClose, customer }: CustomerModalProps) {
             />
           </Field>
 
-          <Field label="Adresse" error={errors.address?.message}>
+          <Field label="Adresse" error={errors.addressLine1?.message}>
             <input
-              {...register('address')}
+              {...register('addressLine1')}
               placeholder="1 rue de la Paix"
-              className={inputClass(errors.address?.message)}
+              className={inputClass(errors.addressLine1?.message)}
             />
           </Field>
 

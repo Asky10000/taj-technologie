@@ -202,7 +202,7 @@ export default function TicketsPage() {
 
                     {/* Client */}
                     <span className="hidden md:block text-xs text-muted-foreground max-w-32 truncate">
-                      {ticket.customer?.companyName ?? '—'}
+                      {ticket.customer?.name ?? '—'}
                     </span>
 
                     {/* Priorité */}
