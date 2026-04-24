@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Search, Sun, Moon } from 'lucide-react';
+import { Bell, Search, Sun, Moon, Menu } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -18,20 +18,36 @@ const ROUTE_LABELS: Record<string, string> = {
   '/settings':   'Paramètres',
 };
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const pathname  = usePathname();
   const { theme, setTheme } = useTheme();
 
   const title = ROUTE_LABELS[pathname] ?? 'TAJ Technologie';
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center px-6 gap-4">
-      <div className="flex-1">
-        <h1 className="text-base font-semibold text-foreground">{title}</h1>
+    <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-3 flex-shrink-0">
+      {/* Hamburger — mobile uniquement */}
+      <button
+        onClick={onMenuClick}
+        className={cn(
+          'lg:hidden w-9 h-9 rounded-md border border-input flex items-center justify-center flex-shrink-0',
+          'text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
+        )}
+        aria-label="Ouvrir le menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <h1 className="text-base font-semibold text-foreground truncate">{title}</h1>
       </div>
 
       {/* Recherche globale */}
-      <div className="hidden md:flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground w-56">
+      <div className="hidden md:flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground w-56 flex-shrink-0">
         <Search className="w-4 h-4 flex-shrink-0" />
         <span>Recherche rapide…</span>
         <kbd className="ml-auto text-[10px] border border-border rounded px-1 py-0.5 font-mono">
@@ -43,7 +59,7 @@ export function Header() {
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className={cn(
-          'w-9 h-9 rounded-md border border-input flex items-center justify-center',
+          'w-9 h-9 rounded-md border border-input flex items-center justify-center flex-shrink-0',
           'text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
         )}
         title="Changer de thème"
@@ -58,7 +74,7 @@ export function Header() {
       {/* Notifications */}
       <button
         className={cn(
-          'relative w-9 h-9 rounded-md border border-input flex items-center justify-center',
+          'relative w-9 h-9 rounded-md border border-input flex items-center justify-center flex-shrink-0',
           'text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
         )}
         title="Notifications"
