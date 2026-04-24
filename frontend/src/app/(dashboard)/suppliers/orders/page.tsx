@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { ShoppingBag, Plus, Loader2, Truck, CreditCard } from 'lucide-react';
 import {
-  usePurchaseOrders, useCreatePurchaseOrder,
+  usePurchaseOrders, useCreatePurchaseOrder, useSuppliers,
   useUpdatePurchaseOrderStatus, useReceiveGoods, useRecordPurchasePayment,
 } from '@/hooks/useSuppliers';
+import { useProducts } from '@/hooks/useInventory';
 import { Badge }       from '@/components/ui/Badge';
 import { Pagination }  from '@/components/ui/Pagination';
 import { EmptyState }  from '@/components/ui/EmptyState';
@@ -60,6 +61,9 @@ export default function PurchaseOrdersPage() {
   const [payMethod, setPayMethod] = useState('BANK_TRANSFER');
 
   const { data, isLoading, isFetching } = usePurchaseOrders({ page, limit: 20, search: search || undefined, status: status || undefined });
+  const { data: suppliersData } = useSuppliers({ limit: 200 });
+  const { data: productsData }  = useProducts();
+  const products = productsData?.items ?? [];
   const createMutation  = useCreatePurchaseOrder();
   const updateStatus    = useUpdatePurchaseOrderStatus();
   const receiveMutation = useReceiveGoods();
@@ -192,11 +196,15 @@ export default function PurchaseOrdersPage() {
         }} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">UUID Fournisseur <span className="text-destructive">*</span></label>
-              <input required value={createForm.supplierId}
+              <label className="text-sm font-medium">Fournisseur <span className="text-destructive">*</span></label>
+              <select required value={createForm.supplierId}
                 onChange={(e) => setCreateForm((p) => ({ ...p, supplierId: e.target.value }))}
-                placeholder="UUID du fournisseur"
-                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                <option value="">— Sélectionner —</option>
+                {(suppliersData?.items ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Livraison prévue</label>
@@ -222,13 +230,30 @@ export default function PurchaseOrdersPage() {
             </div>
             {createLines.map((line, i) => (
               <div key={i} className="grid grid-cols-[1fr_60px_90px_60px_32px] gap-2 items-center">
-                <input value={line.designation} onChange={(e) => updateLine(i, { designation: e.target.value })}
-                  placeholder="Produit ou service"
-                  className="h-8 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring" />
+                <select
+                  value={line.designation}
+                  onChange={(e) => {
+                    const selected = products.find((p) => p.name === e.target.value);
+                    updateLine(i, {
+                      designation: e.target.value,
+                      unitPrice:   selected ? selected.sellingPrice : line.unitPrice,
+                      taxRate:     selected ? selected.taxRate      : line.taxRate,
+                    });
+                  }}
+                  className="h-8 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">— Produit —</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.name}>{p.name} ({p.sku})</option>
+                  ))}
+                  {line.designation && !products.find((p) => p.name === line.designation) && (
+                    <option value={line.designation}>{line.designation}</option>
+                  )}
+                </select>
                 <input type="number" min={0.001} step={1} value={line.quantity}
                   onChange={(e) => updateLine(i, { quantity: +e.target.value })}
                   className="h-8 px-2 rounded border border-input bg-background text-xs text-right focus:outline-none focus:ring-1 focus:ring-ring" />
-                <input type="number" min={0} step={0.01} value={line.unitPrice}
+                <input type="number" min={0} step={1} value={line.unitPrice}
                   onChange={(e) => updateLine(i, { unitPrice: +e.target.value })}
                   className="h-8 px-2 rounded border border-input bg-background text-xs text-right focus:outline-none focus:ring-1 focus:ring-ring" />
                 <input type="number" min={0} max={100} step={1} value={line.taxRate}

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Package, Loader2, Pencil, Trash2, Tag } from 'lucide-react';
+import { Plus, Package, Loader2, Pencil, Trash2, Warehouse } from 'lucide-react';
+import Link from 'next/link';
 import {
   useProductsList, useCreateProduct, useUpdateProduct,
   useDeleteProduct, useUpdateProductStatus, useCategories,
 } from '@/hooks/useProducts';
+import { useStocks } from '@/hooks/useInventory';
 import { Badge }       from '@/components/ui/Badge';
 import { Pagination }  from '@/components/ui/Pagination';
 import { EmptyState }  from '@/components/ui/EmptyState';
@@ -84,6 +86,12 @@ export default function ProductsPage() {
     type:    typeFilter || undefined,
   });
   const { data: categories } = useCategories();
+  const { data: stocksData }  = useStocks({ limit: 500 });
+
+  // Map productId → stock disponible
+  const stockMap = new Map<string, number>(
+    (stocksData?.items ?? []).map((s) => [s.productId, s.availableQuantity]),
+  );
 
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
@@ -211,8 +219,8 @@ export default function ProductsPage() {
         ) : (
           <>
             {/* Header desktop */}
-            <div className="hidden sm:grid grid-cols-[80px_1fr_130px_110px_100px_110px_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-              {['SKU', 'PRODUIT', 'TYPE', 'PRIX HT', 'TVA', 'STATUT', 'ACTIONS'].map((h) => (
+            <div className="hidden sm:grid grid-cols-[80px_1fr_130px_110px_60px_80px_110px_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
+              {['SKU', 'PRODUIT', 'TYPE', 'PRIX HT', 'TVA', 'STOCK', 'STATUT', 'ACTIONS'].map((h) => (
                 <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
               ))}
             </div>
@@ -251,7 +259,7 @@ export default function ProductsPage() {
                     </div>
 
                     {/* Desktop row */}
-                    <div className="hidden sm:grid grid-cols-[80px_1fr_130px_110px_100px_110px_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                    <div className="hidden sm:grid grid-cols-[80px_1fr_130px_110px_60px_80px_110px_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
                       <span className="text-xs font-mono text-muted-foreground truncate">{product.sku}</span>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
@@ -264,6 +272,23 @@ export default function ProductsPage() {
                       </span>
                       <span className="text-sm font-semibold">{formatCurrency(product.sellingPrice)}</span>
                       <span className="text-sm text-muted-foreground">{product.taxRate} %</span>
+                      {/* Stock dispo */}
+                      {product.stockPolicy === 'TRACKED' ? (
+                        <Link href="/inventory" className="group flex items-center gap-1">
+                          <span className={cn('text-sm font-semibold tabular-nums',
+                            (stockMap.get(product.id) ?? 0) === 0
+                              ? 'text-red-500'
+                              : (stockMap.get(product.id) ?? 0) <= 5
+                                ? 'text-amber-500'
+                                : 'text-emerald-600',
+                          )}>
+                            {stockMap.get(product.id) ?? 0}
+                          </span>
+                          <Warehouse className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                       <Badge variant={sc.variant}>{sc.label}</Badge>
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => openEdit(product)}

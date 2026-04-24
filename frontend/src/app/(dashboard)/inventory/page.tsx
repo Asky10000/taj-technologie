@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Loader2, AlertTriangle, TrendingDown } from 'lucide-react';
+import { Package, Loader2, AlertTriangle, TrendingDown, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import { useStocks, useAdjustStock } from '@/hooks/useInventory';
 import { Pagination }  from '@/components/ui/Pagination';
 import { EmptyState }  from '@/components/ui/EmptyState';
@@ -92,7 +93,15 @@ export default function StocksPage() {
                     <div>
                       <div className="flex items-center gap-1.5">
                         {isLow && <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />}
-                        <p className="text-sm font-medium text-foreground">{stock.product?.name ?? '—'}</p>
+                        {stock.productId ? (
+                          <Link href={`/products?highlight=${stock.productId}`}
+                            className="text-sm font-medium text-foreground hover:text-primary hover:underline flex items-center gap-1 group">
+                            {stock.product?.name ?? '—'}
+                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+                          </Link>
+                        ) : (
+                          <p className="text-sm font-medium text-foreground">{stock.product?.name ?? '—'}</p>
+                        )}
                       </div>
                       {stock.product?.category && (
                         <p className="text-xs text-muted-foreground">{stock.product.category.name}</p>
