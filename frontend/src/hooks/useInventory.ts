@@ -27,7 +27,7 @@ export function useProducts(params: { page?: number; limit?: number; search?: st
     queryKey: inventoryKeys.products(params),
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<PaginatedResponse<ProductOption>>>(
-        '/products', { params: { page: 1, limit: 500, ...params } },
+        '/products', { params: { page: 1, limit: 100, ...params } },
       );
       return data.data;
     },

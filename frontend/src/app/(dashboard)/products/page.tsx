@@ -88,7 +88,7 @@ export default function ProductsPage() {
     type:    typeFilter || undefined,
   });
   const { data: categories } = useCategories();
-  const { data: stocksData }  = useStocks({ limit: 500 });
+  const { data: stocksData }  = useStocks({ limit: 100 });
 
   // Map productId → stock disponible
   const stockMap = new Map<string, number>(

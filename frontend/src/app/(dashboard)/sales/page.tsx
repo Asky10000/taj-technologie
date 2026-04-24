@@ -45,7 +45,7 @@ export default function QuotesPage() {
   ]);
 
   const { data, isLoading, isFetching } = useQuotes({ page, limit: 20, search: search || undefined, status: status || undefined });
-  const { data: customersData } = useCustomers({ limit: 200 });
+  const { data: customersData } = useCustomers({ limit: 100 });
   const createMutation  = useCreateQuote();
   const updateStatus    = useUpdateQuoteStatus();
   const convertMutation = useConvertQuoteToOrder();

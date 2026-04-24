@@ -61,7 +61,7 @@ export default function PurchaseOrdersPage() {
   const [payMethod, setPayMethod] = useState('BANK_TRANSFER');
 
   const { data, isLoading, isFetching } = usePurchaseOrders({ page, limit: 20, search: search || undefined, status: status || undefined });
-  const { data: suppliersData } = useSuppliers({ limit: 200 });
+  const { data: suppliersData } = useSuppliers({ limit: 100 });
   const { data: productsData }  = useProducts();
   const products = productsData?.items ?? [];
   const createMutation  = useCreatePurchaseOrder();
