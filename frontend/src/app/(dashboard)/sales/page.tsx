@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Plus, FileText, Loader2, ArrowRight } from 'lucide-react';
 import { useQuotes, useCreateQuote, useUpdateQuoteStatus, useConvertQuoteToOrder } from '@/hooks/useSales';
+import { useCustomers } from '@/hooks/useCrm';
 import { Badge }           from '@/components/ui/Badge';
 import { Pagination }      from '@/components/ui/Pagination';
 import { EmptyState }      from '@/components/ui/EmptyState';
@@ -44,6 +45,7 @@ export default function QuotesPage() {
   ]);
 
   const { data, isLoading, isFetching } = useQuotes({ page, limit: 20, search: search || undefined, status: status || undefined });
+  const { data: customersData } = useCustomers({ limit: 200 });
   const createMutation  = useCreateQuote();
   const updateStatus    = useUpdateQuoteStatus();
   const convertMutation = useConvertQuoteToOrder();
@@ -187,10 +189,18 @@ export default function QuotesPage() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">UUID Client <span className="text-destructive">*</span></label>
-              <input required value={form.customerId} onChange={(e) => setForm((p) => ({ ...p, customerId: e.target.value }))}
-                placeholder="UUID du client"
-                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              <label className="text-sm font-medium">Client <span className="text-destructive">*</span></label>
+              <select
+                required
+                value={form.customerId}
+                onChange={(e) => setForm((p) => ({ ...p, customerId: e.target.value }))}
+                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">— Sélectionner un client —</option>
+                {customersData?.items.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} {c.code ? `(${c.code})` : ''}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Valable jusqu'au</label>
