@@ -4,11 +4,35 @@ import api from '@/lib/api';
 import type { Stock, StockMovement } from '@/types/inventory.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+export interface ProductOption {
+  id:           string;
+  sku:          string;
+  name:         string;
+  sellingPrice: number;
+  taxRate:      number;
+  unit:         string;
+}
+
 export const inventoryKeys = {
   stocks:    (p?: object) => ['stocks',    p] as const,
   stock:     (id: string) => ['stocks',    id] as const,
   movements: (p?: object) => ['movements', p] as const,
+  products:  (p?: object) => ['products',  p] as const,
 };
+
+// ── Produits (catalogue) ─────────────────────────────────────────
+
+export function useProducts(params: { page?: number; limit?: number; search?: string } = {}) {
+  return useQuery({
+    queryKey: inventoryKeys.products(params),
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<PaginatedResponse<ProductOption>>>(
+        '/products', { params: { page: 1, limit: 500, ...params } },
+      );
+      return data.data;
+    },
+  });
+}
 
 // ── Stocks ────────────────────────────────────────────────────────
 
