@@ -2,7 +2,34 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import type { Supplier, PurchaseOrder, PurchaseOrderStatus, PurchaseOrderLine } from '@/types/supplier.types';
-import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
+import type { ApiResponse } from '@/types/api.types';
+
+/* ── Type paginé plat ──────────────────────────────────────────── */
+interface PagedResult<T> {
+  items:      T[];
+  page:       number;
+  limit:      number;
+  total:      number;
+  totalPages: number;
+  hasNextPage:  boolean;
+  hasPrevPage:  boolean;
+}
+
+/* Aplatit { items, meta } retourné par paginate() du backend */
+function flattenPage<T>(raw: { items: T[]; meta?: { page: number; limit: number; totalItems: number; totalPages: number; hasNextPage: boolean; hasPreviousPage: boolean }; page?: number; limit?: number; total?: number; totalPages?: number }): PagedResult<T> {
+  if (raw.meta) {
+    return {
+      items:       raw.items,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      total:       raw.meta.totalItems,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as unknown as PagedResult<T>;
+}
 
 export const supplierKeys = {
   suppliers: (p?: object) => ['suppliers', p] as const,
@@ -17,10 +44,10 @@ export function useSuppliers(params: { page?: number; limit?: number; search?: s
   return useQuery({
     queryKey: supplierKeys.suppliers(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Supplier>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/suppliers', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Supplier>(data.data);
     },
   });
 }
@@ -55,10 +82,10 @@ export function usePurchaseOrders(params: { page?: number; limit?: number; searc
   return useQuery({
     queryKey: supplierKeys.orders(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<PurchaseOrder>>>(
-        '/suppliers/orders', { params: { page: 1, limit: 20, ...params } },
+      const { data } = await api.get<ApiResponse<any>>(
+        '/suppliers/purchase-orders', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<PurchaseOrder>(data.data);
     },
   });
 }
@@ -67,7 +94,7 @@ export function usePurchaseOrder(id: string) {
   return useQuery({
     queryKey: supplierKeys.order(id),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PurchaseOrder>>(`/suppliers/orders/${id}`);
+      const { data } = await api.get<ApiResponse<PurchaseOrder>>(`/suppliers/purchase-orders/${id}`);
       return data.data;
     },
     enabled: !!id,
@@ -82,7 +109,7 @@ export function useCreatePurchaseOrder() {
       lines: Omit<PurchaseOrderLine, 'id' | 'receivedQuantity' | 'product'>[];
       expectedDeliveryDate?: string;
       notes?: string;
-    }) => api.post<ApiResponse<PurchaseOrder>>('/suppliers/orders', payload).then((r) => r.data.data),
+    }) => api.post<ApiResponse<PurchaseOrder>>('/suppliers/purchase-orders', payload).then((r) => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['purchase-orders'] }); toast.success('Bon de commande créé'); },
     onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
   });
@@ -92,7 +119,7 @@ export function useUpdatePurchaseOrderStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: PurchaseOrderStatus }) =>
-      api.patch<ApiResponse<PurchaseOrder>>(`/suppliers/orders/${id}/status`, { status }).then((r) => r.data.data),
+      api.patch<ApiResponse<PurchaseOrder>>(`/suppliers/purchase-orders/${id}/status`, { status }).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: supplierKeys.order(id) });
       qc.invalidateQueries({ queryKey: ['purchase-orders'] });
@@ -106,7 +133,7 @@ export function useReceiveGoods() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, lines }: { id: string; lines: { lineId: string; receivedQuantity: number }[] }) =>
-      api.post<ApiResponse<PurchaseOrder>>(`/suppliers/orders/${id}/receive`, { lines }).then((r) => r.data.data),
+      api.post<ApiResponse<PurchaseOrder>>(`/suppliers/purchase-orders/${id}/receive`, { lines }).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: supplierKeys.order(id) });
       qc.invalidateQueries({ queryKey: ['purchase-orders'] });
@@ -121,8 +148,8 @@ export function useReceiveGoods() {
 export function useRecordPurchasePayment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount, paymentMethod }: { id: string; amount: number; paymentMethod?: string }) =>
-      api.post<ApiResponse<PurchaseOrder>>(`/suppliers/orders/${id}/payment`, { amount, paymentMethod }).then((r) => r.data.data),
+    mutationFn: ({ id, amount, reference }: { id: string; amount: number; reference?: string }) =>
+      api.post<ApiResponse<PurchaseOrder>>(`/suppliers/purchase-orders/${id}/payment`, { amount, ...(reference ? { reference } : {}) }).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: supplierKeys.order(id) });
       qc.invalidateQueries({ queryKey: ['purchase-orders'] });

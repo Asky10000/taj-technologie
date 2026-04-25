@@ -58,7 +58,7 @@ export default function PurchaseOrdersPage() {
   // Paiement
   const [payModal,  setPayModal]  = useState<string | null>(null);
   const [payAmount, setPayAmount] = useState(0);
-  const [payMethod, setPayMethod] = useState('BANK_TRANSFER');
+  const [payRef,    setPayRef]    = useState('');
 
   const { data, isLoading, isFetching } = usePurchaseOrders({ page, limit: 20, search: search || undefined, status: status || undefined });
   const { data: suppliersData } = useSuppliers({ limit: 100 });
@@ -169,7 +169,7 @@ export default function PurchaseOrdersPage() {
                         </button>
                       )}
                       {canPay && (
-                        <button onClick={() => { setPayModal(order.id); setPayAmount(order.remainingAmount); }}
+                        <button onClick={() => { setPayModal(order.id); setPayAmount(order.remainingAmount); setPayRef(''); }}
                           className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent transition-colors text-muted-foreground"
                           title="Enregistrer un paiement">
                           <CreditCard className="w-3.5 h-3.5" />
@@ -191,7 +191,12 @@ export default function PurchaseOrdersPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Nouveau bon de commande" size="xl">
         <form onSubmit={async (e) => {
           e.preventDefault();
-          await createMutation.mutateAsync({ ...createForm, lines: createLines });
+          await createMutation.mutateAsync({
+            supplierId: createForm.supplierId,
+            ...(createForm.expectedDeliveryDate ? { expectedDeliveryDate: createForm.expectedDeliveryDate } : {}),
+            ...(createForm.notes ? { notes: createForm.notes } : {}),
+            lines: createLines,
+          });
           setShowCreate(false);
         }} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -236,8 +241,8 @@ export default function PurchaseOrdersPage() {
                     const selected = products.find((p) => p.name === e.target.value);
                     updateLine(i, {
                       designation: e.target.value,
-                      unitPrice:   selected ? selected.sellingPrice : line.unitPrice,
-                      taxRate:     selected ? selected.taxRate      : line.taxRate,
+                      unitPrice:   selected ? Math.round(selected.sellingPrice) : line.unitPrice,
+                      taxRate:     selected ? Math.round(selected.taxRate)      : line.taxRate,
                     });
                   }}
                   className="h-8 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring"
@@ -250,14 +255,17 @@ export default function PurchaseOrdersPage() {
                     <option value={line.designation}>{line.designation}</option>
                   )}
                 </select>
-                <input type="number" min={0.001} step={1} value={line.quantity}
-                  onChange={(e) => updateLine(i, { quantity: +e.target.value })}
+                <input type="number" min={1} step={1} value={line.quantity}
+                  onChange={(e) => updateLine(i, { quantity: Math.max(1, Math.trunc(+e.target.value) || 1) })}
+                  onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
                   className="h-8 px-2 rounded border border-input bg-background text-xs text-right focus:outline-none focus:ring-1 focus:ring-ring" />
                 <input type="number" min={0} step={1} value={line.unitPrice}
-                  onChange={(e) => updateLine(i, { unitPrice: +e.target.value })}
+                  onChange={(e) => updateLine(i, { unitPrice: Math.max(0, Math.trunc(+e.target.value)) })}
+                  onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
                   className="h-8 px-2 rounded border border-input bg-background text-xs text-right focus:outline-none focus:ring-1 focus:ring-ring" />
                 <input type="number" min={0} max={100} step={1} value={line.taxRate}
-                  onChange={(e) => updateLine(i, { taxRate: +e.target.value })}
+                  onChange={(e) => updateLine(i, { taxRate: Math.min(100, Math.max(0, Math.trunc(+e.target.value))) })}
+                  onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault(); }}
                   className="h-8 px-2 rounded border border-input bg-background text-xs text-right focus:outline-none focus:ring-1 focus:ring-ring" />
                 <button type="button" onClick={() => setCreateLines((p) => p.filter((_, idx) => idx !== i))}
                   className="w-7 h-7 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors text-lg leading-none">
@@ -334,7 +342,7 @@ export default function PurchaseOrdersPage() {
         <form onSubmit={async (e) => {
           e.preventDefault();
           if (!payModal) return;
-          await payMutation.mutateAsync({ id: payModal, amount: payAmount, paymentMethod: payMethod });
+          await payMutation.mutateAsync({ id: payModal, amount: payAmount, ...(payRef ? { reference: payRef } : {}) });
           setPayModal(null);
         }} className="space-y-4">
           <div className="space-y-1.5">
@@ -344,15 +352,13 @@ export default function PurchaseOrdersPage() {
               className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Mode de paiement</label>
-            <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}
-              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="BANK_TRANSFER">Virement bancaire</option>
-              <option value="CHECK">Chèque</option>
-              <option value="CASH">Espèces</option>
-              <option value="CARD">Carte bancaire</option>
-              <option value="DIRECT_DEBIT">Prélèvement</option>
-            </select>
+            <label className="text-sm font-medium">Référence</label>
+            <input
+              value={payRef}
+              onChange={(e) => setPayRef(e.target.value)}
+              placeholder="N° virement, chèque, reçu…"
+              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-border">
             <button type="button" onClick={() => setPayModal(null)} className="h-9 px-4 rounded-md border text-sm hover:bg-accent transition-colors">Annuler</button>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Trash2, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Plus, Trash2, Package, X } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { useProducts } from '@/hooks/useInventory';
 import type { SaleLine } from '@/types/sales.types';
@@ -12,19 +12,28 @@ interface SaleLineEditorProps {
 }
 
 const emptyLine = (): Omit<SaleLine, 'id'> => ({
-  productId: undefined, description: '', quantity: 1,
-  unitPrice: 0, taxRate: 18, discountType: 'PERCENT', discountValue: 0,
+  productId:    undefined,
+  description:  '',
+  quantity:     1,
+  unitPrice:    0,
+  taxRate:      18,
+  discountType: 'PERCENT',
+  discountValue: 0,
 });
 
 function calcLine(l: Omit<SaleLine, 'id'>) {
-  const base   = Number(l.quantity) * Number(l.unitPrice);
+  const base    = Number(l.quantity) * Number(l.unitPrice);
   const discVal = Number(l.discountValue ?? 0);
   const ht  = l.discountType === 'FIXED' ? base - discVal : base * (1 - discVal / 100);
   const ttc = ht * (1 + Number(l.taxRate) / 100);
   return { ht, ttc };
 }
 
-/* Champ désignation avec liste déroulante + saisie libre */
+/* ─────────────────────────────────────────────────────────────────
+   Combobox désignation
+   Le dropdown utilise position:fixed + getBoundingClientRect pour
+   échapper aux overflow:hidden/auto des conteneurs parents (modal).
+   ───────────────────────────────────────────────────────────────── */
 function DesignationCell({
   line, index, onUpdate,
 }: {
@@ -35,127 +44,211 @@ function DesignationCell({
   const { data: productsData } = useProducts();
   const products = productsData?.items ?? [];
 
-  const [open,   setOpen]   = useState(false);
-  const [search, setSearch] = useState('');
+  const [open,        setOpen]        = useState(false);
+  const [inputValue,  setInputValue]  = useState(line.description);
+  const [highlighted, setHighlighted] = useState(0);
+  /* Coordonnées fixes du dropdown */
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 320 });
 
-  const filtered = search.trim()
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef     = useRef<HTMLInputElement>(null);
+
+  /* Sync description depuis l'extérieur */
+  useEffect(() => { setInputValue(line.description); }, [line.description]);
+
+  /* Calcul des coordonnées viewport au moment d'ouvrir */
+  const openDropdown = useCallback(() => {
+    if (containerRef.current) {
+      const r = containerRef.current.getBoundingClientRect();
+      setCoords({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 300) });
+    }
+    setOpen(true);
+    setHighlighted(0);
+  }, []);
+
+  /* Fermer au clic extérieur */
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      const target = e.target as Node;
+      /* Ignore les clics dans le container ou dans le dropdown (fixed) */
+      const dropdown = document.getElementById(`sl-dropdown-${index}`);
+      if (containerRef.current?.contains(target) || dropdown?.contains(target)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [open, index]);
+
+  /* Recalculer position si la fenêtre scrolle / est redimensionnée */
+  useEffect(() => {
+    if (!open) return;
+    const recalc = () => {
+      if (containerRef.current) {
+        const r = containerRef.current.getBoundingClientRect();
+        setCoords({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 300) });
+      }
+    };
+    window.addEventListener('scroll', recalc, true);
+    window.addEventListener('resize', recalc);
+    return () => { window.removeEventListener('scroll', recalc, true); window.removeEventListener('resize', recalc); };
+  }, [open]);
+
+  /* Filtrage */
+  const query    = inputValue.trim().toLowerCase();
+  const filtered = query
     ? products.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase()),
+        p.name.toLowerCase().includes(query) ||
+        p.sku.toLowerCase().includes(query),
       )
     : products;
 
+  /* Sélectionner un produit */
   const selectProduct = (p: (typeof products)[0]) => {
-    onUpdate({
-      productId:   p.id,
-      description: p.name,
-      unitPrice:   p.sellingPrice,
-      taxRate:     p.taxRate,
-    });
-    setSearch('');
+    onUpdate({ productId: p.id, description: p.name, unitPrice: p.sellingPrice, taxRate: p.taxRate });
+    setInputValue(p.name);
     setOpen(false);
   };
 
-  const clearProduct = () => {
-    onUpdate({ productId: undefined, description: '', unitPrice: 0 });
-    setSearch('');
+  /* Clavier */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { openDropdown(); }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlighted((h) => Math.min(h + 1, Math.min(filtered.length, 50) - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlighted((h) => Math.max(h - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filtered[highlighted]) selectProduct(filtered[highlighted]);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
   };
 
   return (
-    <div className="relative w-full">
-      {/* Champ affiché */}
-      <div
-        className={cn(
-          'flex items-center gap-1 h-8 px-2 rounded border border-input bg-background text-xs cursor-pointer',
-          open && 'ring-1 ring-ring border-ring',
+    <div ref={containerRef} className="relative w-full">
+
+      {/* ── Champ de saisie ─────────────────────────────────────── */}
+      <div className={cn(
+        'flex items-center h-8 rounded border border-input bg-background overflow-hidden',
+        open && 'ring-1 ring-ring border-ring',
+      )}>
+        {line.productId && (
+          <span className="pl-2 text-primary flex-shrink-0">
+            <Package className="w-3 h-3" />
+          </span>
         )}
-        onClick={() => { setOpen((v) => !v); setSearch(''); }}
-      >
-        <span className={cn('flex-1 truncate', !line.description && 'text-muted-foreground')}>
-          {line.description || 'Sélectionner ou saisir…'}
-        </span>
-        <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+        <input
+          ref={inputRef}
+          value={inputValue}
+          placeholder="Désignation ou rechercher un produit…"
+          autoComplete="off"
+          className="flex-1 h-full px-2 bg-transparent text-xs focus:outline-none placeholder:text-muted-foreground min-w-0"
+          onChange={(e) => {
+            const v = e.target.value;
+            setInputValue(v);
+            onUpdate({ description: v, productId: undefined });
+            openDropdown();
+          }}
+          onFocus={openDropdown}
+          onKeyDown={handleKeyDown}
+        />
+        {(inputValue || line.productId) && (
+          <button
+            type="button"
+            tabIndex={-1}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setInputValue('');
+              onUpdate({ description: '', productId: undefined, unitPrice: 0, taxRate: 18 });
+              setOpen(false);
+              inputRef.current?.focus();
+            }}
+            className="px-2 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
-      {/* Dropdown */}
+      {/* ── Dropdown (position:fixed pour sortir des overflow) ──── */}
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
-          {/* Recherche */}
-          <div className="p-2 border-b border-border">
-            <input
-              autoFocus
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un produit…"
-              className="w-full h-7 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-
-          {/* Liste produits */}
-          <div className="max-h-48 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <p className="px-3 py-4 text-xs text-muted-foreground text-center">Aucun produit trouvé</p>
-            ) : (
-              filtered.slice(0, 50).map((p) => (
+        <div
+          id={`sl-dropdown-${index}`}
+          className="fixed z-[9999] bg-popover border border-border rounded-lg shadow-2xl overflow-hidden"
+          style={{ top: coords.top, left: coords.left, width: coords.width }}
+        >
+          {filtered.length === 0 ? (
+            <div className="px-3 py-3 text-xs text-muted-foreground text-center">
+              {products.length === 0
+                ? 'Aucun produit dans le catalogue — créez-en dans la rubrique Produits'
+                : 'Aucun produit trouvé — la saisie sera enregistrée telle quelle'}
+            </div>
+          ) : (
+            <div className="max-h-56 overflow-y-auto">
+              {filtered.slice(0, 50).map((p, idx) => (
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => selectProduct(p)}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-accent transition-colors"
+                  onMouseDown={(e) => { e.preventDefault(); selectProduct(p); }}
+                  className={cn(
+                    'w-full flex items-center justify-between gap-3 px-3 py-2 text-left transition-colors',
+                    idx === highlighted ? 'bg-accent' : 'hover:bg-accent/60',
+                  )}
                 >
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground truncate">{p.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{p.sku}</p>
+                  <div className="min-w-0 flex-1">
+                    <HighlightMatch text={p.name} query={query} />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{p.sku} · {p.unit}</p>
                   </div>
-                  <span className="text-xs font-semibold text-primary flex-shrink-0">
+                  <span className="text-xs font-semibold text-primary flex-shrink-0 whitespace-nowrap">
                     {formatCurrency(p.sellingPrice)}
                   </span>
                 </button>
-              ))
-            )}
-          </div>
-
-          {/* Option saisie libre */}
-          <div className="border-t border-border p-2">
-            <button
-              type="button"
-              onClick={() => {
-                clearProduct();
-                setOpen(false);
-                // Permettre la saisie manuelle
-                setTimeout(() => {
-                  const el = document.getElementById(`desc-free-${index}`);
-                  el?.focus();
-                }, 50);
-              }}
-              className="w-full text-xs text-muted-foreground hover:text-foreground py-1 text-center transition-colors"
-            >
-              ✏️ Saisie libre (service / autre)
-            </button>
-          </div>
+              ))}
+              {filtered.length > 50 && (
+                <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border text-center">
+                  +{filtered.length - 50} résultats — affinez la recherche
+                </p>
+              )}
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Champ texte libre (quand pas de produit sélectionné) */}
-      {!line.productId && !open && (
-        <input
-          id={`desc-free-${index}`}
-          value={line.description}
-          onChange={(e) => onUpdate({ description: e.target.value })}
-          onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-          placeholder="Description libre…"
-          className="absolute inset-0 h-8 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
-        />
       )}
     </div>
   );
 }
 
+/* Surligne la correspondance dans le texte */
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query) {
+    return <p className="text-xs font-medium text-foreground truncate">{text}</p>;
+  }
+  const i = text.toLowerCase().indexOf(query.toLowerCase());
+  if (i === -1) {
+    return <p className="text-xs font-medium text-foreground truncate">{text}</p>;
+  }
+  return (
+    <p className="text-xs font-medium text-foreground truncate">
+      {text.slice(0, i)}
+      <mark className="bg-yellow-200 dark:bg-yellow-700 text-foreground rounded-[2px] not-italic">
+        {text.slice(i, i + query.length)}
+      </mark>
+      {text.slice(i + query.length)}
+    </p>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Composant principal
+   ───────────────────────────────────────────────────────────────── */
 export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
-  const update = (i: number, patch: Partial<Omit<SaleLine, 'id'>>) => {
+  const update = (i: number, patch: Partial<Omit<SaleLine, 'id'>>) =>
     onChange(lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
-  };
 
   const add    = () => onChange([...lines, emptyLine()]);
   const remove = (i: number) => onChange(lines.filter((_, idx) => idx !== i));
@@ -163,24 +256,26 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
   const totalHT  = lines.reduce((s, l) => s + calcLine(l).ht,  0);
   const totalTTC = lines.reduce((s, l) => s + calcLine(l).ttc, 0);
 
-  const input = (cls?: string) =>
+  const inp = (cls?: string) =>
     cn('h-8 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring', cls);
 
   return (
     <div className="space-y-2">
-      {/* Header desktop */}
-      <div className="hidden sm:grid grid-cols-[1fr_52px_88px_56px_60px_80px_32px] gap-1.5 px-1">
+
+      {/* ── En-tête desktop ─────────────────────────────────────── */}
+      <div className="hidden sm:grid grid-cols-[1fr_52px_92px_52px_60px_84px_32px] gap-1.5 px-1">
         {['Désignation', 'Qté', 'P.U. HT', 'TVA%', 'Remise%', 'Total HT', ''].map((h) => (
           <span key={h} className="text-[10px] font-semibold text-muted-foreground uppercase">{h}</span>
         ))}
       </div>
 
-      {/* Lignes */}
+      {/* ── Lignes ──────────────────────────────────────────────── */}
       {lines.map((line, i) => {
         const { ht } = calcLine(line);
         return (
-          <div key={i} className="space-y-1.5 sm:space-y-0">
-            {/* Mobile : empilé */}
+          <div key={i}>
+
+            {/* Mobile */}
             <div className="sm:hidden space-y-1.5 bg-muted/30 rounded-lg p-2">
               <DesignationCell line={line} index={i} onUpdate={(p) => update(i, p)} />
               <div className="grid grid-cols-4 gap-1.5">
@@ -188,25 +283,25 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
                   <p className="text-[10px] text-muted-foreground mb-0.5">Qté</p>
                   <input type="number" min={0.001} step={0.5} value={line.quantity}
                     onChange={(e) => update(i, { quantity: +e.target.value })}
-                    className={input('w-full text-right')} />
+                    className={inp('w-full text-right')} />
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground mb-0.5">P.U. HT</p>
                   <input type="number" min={0} step={1} value={line.unitPrice}
                     onChange={(e) => update(i, { unitPrice: +e.target.value })}
-                    className={input('w-full text-right')} />
+                    className={inp('w-full text-right')} />
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground mb-0.5">TVA%</p>
                   <input type="number" min={0} max={100} step={1} value={line.taxRate}
                     onChange={(e) => update(i, { taxRate: +e.target.value })}
-                    className={input('w-full text-right')} />
+                    className={inp('w-full text-right')} />
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground mb-0.5">Remise%</p>
                   <input type="number" min={0} step={0.5} value={line.discountValue ?? 0}
                     onChange={(e) => update(i, { discountValue: +e.target.value })}
-                    className={input('w-full text-right')} />
+                    className={inp('w-full text-right')} />
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -218,21 +313,21 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
               </div>
             </div>
 
-            {/* Desktop : grille */}
-            <div className="hidden sm:grid grid-cols-[1fr_52px_88px_56px_60px_80px_32px] gap-1.5 items-center">
+            {/* Desktop */}
+            <div className="hidden sm:grid grid-cols-[1fr_52px_92px_52px_60px_84px_32px] gap-1.5 items-center">
               <DesignationCell line={line} index={i} onUpdate={(p) => update(i, p)} />
               <input type="number" min={0.001} step={0.5} value={line.quantity}
                 onChange={(e) => update(i, { quantity: +e.target.value })}
-                className={input('w-full text-right')} />
+                className={inp('w-full text-right')} />
               <input type="number" min={0} step={1} value={line.unitPrice}
                 onChange={(e) => update(i, { unitPrice: +e.target.value })}
-                className={input('w-full text-right')} />
+                className={inp('w-full text-right')} />
               <input type="number" min={0} max={100} step={1} value={line.taxRate}
                 onChange={(e) => update(i, { taxRate: +e.target.value })}
-                className={input('w-full text-right')} />
+                className={inp('w-full text-right')} />
               <input type="number" min={0} step={0.5} value={line.discountValue ?? 0}
                 onChange={(e) => update(i, { discountValue: +e.target.value })}
-                className={input('w-full text-right')} />
+                className={inp('w-full text-right')} />
               <span className="text-xs font-medium text-right text-foreground pr-1">
                 {formatCurrency(ht)}
               </span>
@@ -241,30 +336,31 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
+
           </div>
         );
       })}
 
-      {/* Ajouter ligne */}
+      {/* ── Ajouter une ligne ────────────────────────────────────── */}
       <button type="button" onClick={add}
-        className="flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors mt-1">
+        className="flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors mt-1 ml-1">
         <Plus className="w-3.5 h-3.5" /> Ajouter une ligne
       </button>
 
-      {/* Totaux */}
+      {/* ── Totaux ──────────────────────────────────────────────── */}
       {lines.length > 0 && (
         <div className="border-t border-border pt-3 mt-3 flex flex-col items-end gap-1 text-sm">
           <div className="flex gap-8">
             <span className="text-muted-foreground">Total HT</span>
-            <span className="font-medium w-32 text-right">{formatCurrency(totalHT)}</span>
+            <span className="font-medium w-36 text-right">{formatCurrency(totalHT)}</span>
           </div>
           <div className="flex gap-8">
             <span className="text-muted-foreground">TVA</span>
-            <span className="font-medium w-32 text-right">{formatCurrency(totalTTC - totalHT)}</span>
+            <span className="font-medium w-36 text-right">{formatCurrency(totalTTC - totalHT)}</span>
           </div>
           <div className="flex gap-8 font-bold text-base">
             <span>Total TTC</span>
-            <span className="w-32 text-right text-primary">{formatCurrency(totalTTC)}</span>
+            <span className="w-36 text-right text-primary">{formatCurrency(totalTTC)}</span>
           </div>
         </div>
       )}
