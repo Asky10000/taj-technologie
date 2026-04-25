@@ -69,13 +69,13 @@ export default function PurchaseOrdersPage() {
   const receiveMutation = useReceiveGoods();
   const payMutation     = useRecordPurchasePayment();
 
-  const openReceive = (order: { id: string; lines: PurchaseOrderLine[] }) => {
-    setReceiveLines(order.lines.map((l) => ({
+  const openReceive = (order: { id: string; lines?: PurchaseOrderLine[] }) => {
+    setReceiveLines((order.lines ?? []).map((l) => ({
       lineId:      l.id!,
       designation: l.designation,
       ordered:     l.quantity,
-      received:    l.receivedQuantity,
-      toReceive:   l.quantity - l.receivedQuantity,
+      received:    l.receivedQuantity ?? 0,
+      toReceive:   l.quantity - (l.receivedQuantity ?? 0),
     })));
     setReceiveModal(order.id);
   };

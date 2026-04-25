@@ -188,7 +188,9 @@ export class SuppliersService {
     const qb = this.poRepo
       .createQueryBuilder('po')
       .leftJoinAndSelect('po.supplier', 'supplier')
-      .leftJoinAndSelect('po.createdBy', 'createdBy');
+      .leftJoinAndSelect('po.createdBy', 'createdBy')
+      .leftJoinAndSelect('po.lines', 'lines')
+      .leftJoinAndSelect('lines.product', 'lineProduct');
 
     if (query.supplierId) {
       qb.andWhere('po.supplierId = :sid', { sid: query.supplierId });
