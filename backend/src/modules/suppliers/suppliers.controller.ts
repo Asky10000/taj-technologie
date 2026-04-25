@@ -29,7 +29,7 @@ export class SuppliersController {
   constructor(private readonly suppliersService: SuppliersService) {}
 
   // ──────────────────────────────────────────────────────────────
-  // FOURNISSEURS
+  // FOURNISSEURS — routes sans paramètre
   // ──────────────────────────────────────────────────────────────
 
   @Post()
@@ -52,32 +52,8 @@ export class SuppliersController {
     return this.suppliersService.getSupplierStats();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Détail d\'un fournisseur' })
-  findOneSupplier(@Param('id', ParseUUIDPipe) id: string) {
-    return this.suppliersService.findOneSupplier(id);
-  }
-
-  @Patch(':id')
-  @Roles(Role.MANAGER)
-  @ApiOperation({ summary: 'Modifier un fournisseur' })
-  updateSupplier(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateSupplierDto,
-  ) {
-    return this.suppliersService.updateSupplier(id, dto);
-  }
-
-  @Delete(':id')
-  @Roles(Role.MANAGER)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Supprimer un fournisseur (soft delete)' })
-  removeSupplier(@Param('id', ParseUUIDPipe) id: string) {
-    return this.suppliersService.removeSupplier(id);
-  }
-
   // ──────────────────────────────────────────────────────────────
-  // BONS DE COMMANDE FOURNISSEUR
+  // BONS DE COMMANDE — toutes les routes statiques AVANT :id
   // ──────────────────────────────────────────────────────────────
 
   @Post('purchase-orders')
@@ -158,8 +134,32 @@ export class SuppliersController {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // COMMANDES D'UN FOURNISSEUR SPÉCIFIQUE
+  // FOURNISSEURS — routes paramétrées :id (après les routes statiques)
   // ──────────────────────────────────────────────────────────────
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Détail d\'un fournisseur' })
+  findOneSupplier(@Param('id', ParseUUIDPipe) id: string) {
+    return this.suppliersService.findOneSupplier(id);
+  }
+
+  @Patch(':id')
+  @Roles(Role.MANAGER)
+  @ApiOperation({ summary: 'Modifier un fournisseur' })
+  updateSupplier(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSupplierDto,
+  ) {
+    return this.suppliersService.updateSupplier(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles(Role.MANAGER)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Supprimer un fournisseur (soft delete)' })
+  removeSupplier(@Param('id', ParseUUIDPipe) id: string) {
+    return this.suppliersService.removeSupplier(id);
+  }
 
   @Get(':id/purchase-orders')
   @ApiOperation({ summary: 'Bons de commande d\'un fournisseur' })
