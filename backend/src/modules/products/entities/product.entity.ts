@@ -181,7 +181,8 @@ export class Product extends BaseEntity {
     ) {
       this.stockPolicy = StockPolicy.UNTRACKED;
     } else {
-      if (!this.stockPolicy) this.stockPolicy = StockPolicy.TRACKED;
+      // Produits physiques (HARDWARE, CONSUMABLE, etc.) → toujours TRACKED
+      this.stockPolicy = StockPolicy.TRACKED;
     }
   }
 }
