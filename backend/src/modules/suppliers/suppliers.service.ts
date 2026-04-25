@@ -296,8 +296,8 @@ export class SuppliersService {
         line.receivedQuantity = Number(line.receivedQuantity) + reception.receivedQuantity;
         await manager.save(PurchaseOrderLine, line);
 
-        // Entrée en stock si le produit est suivi
-        if (line.productId && line.product?.stockPolicy === StockPolicy.TRACKED) {
+        // Entrée en stock si le produit est suivi (tout sauf explicitement UNTRACKED)
+        if (line.productId && line.product?.stockPolicy !== StockPolicy.UNTRACKED) {
           // Chercher ou créer un stock pour ce produit
           const stock = await this.inventoryService.findOrCreateStock(
             line.productId,

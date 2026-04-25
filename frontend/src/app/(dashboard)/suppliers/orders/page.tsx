@@ -240,6 +240,7 @@ export default function PurchaseOrdersPage() {
                   onChange={(e) => {
                     const selected = products.find((p) => p.name === e.target.value);
                     updateLine(i, {
+                      productId:   selected?.id,
                       designation: e.target.value,
                       unitPrice:   selected ? Math.round(selected.sellingPrice) : line.unitPrice,
                       taxRate:     selected ? Math.round(selected.taxRate)      : line.taxRate,
