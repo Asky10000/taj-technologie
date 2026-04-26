@@ -116,24 +116,29 @@ export class OrdersService {
   }
 
   async update(id: string, dto: UpdateOrderDto): Promise<Order> {
-    const order = await this.findOne(id);
+    const order = await this.orderRepo.findOne({ where: { id } });
+    if (!order) throw new NotFoundException(`Commande ${id} introuvable`);
     const lockedStatuses = [OrderStatus.DELIVERED, OrderStatus.INVOICED, OrderStatus.CANCELLED];
     if (lockedStatuses.includes(order.status)) {
       throw new BadRequestException(`Impossible de modifier une commande en statut ${order.status}`);
     }
 
-    return this.dataSource.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       const totals = dto.lines
         ? this.calc.calculateDocument(dto.lines, dto.globalDiscountPercent ?? order.globalDiscountPercent)
         : null;
 
-      Object.assign(order, {
-        ...dto,
-        orderDate: dto.orderDate ? new Date(dto.orderDate) : order.orderDate,
-        expectedDeliveryDate: dto.expectedDeliveryDate ? new Date(dto.expectedDeliveryDate) : order.expectedDeliveryDate,
+      await manager.update(Order, id, {
+        ...(dto.subject !== undefined ? { subject: dto.subject } : {}),
+        ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
+        ...(dto.terms !== undefined ? { terms: dto.terms } : {}),
+        ...(dto.shippingAddress !== undefined ? { shippingAddress: dto.shippingAddress } : {}),
+        ...(dto.orderDate ? { orderDate: new Date(dto.orderDate) } : {}),
+        ...(dto.expectedDeliveryDate ? { expectedDeliveryDate: new Date(dto.expectedDeliveryDate) } : {}),
+        ...(dto.globalDiscountPercent !== undefined ? { globalDiscountPercent: dto.globalDiscountPercent } : {}),
+        ...(dto.assignedToId !== undefined ? { assignedToId: dto.assignedToId } : {}),
         ...(totals ?? {}),
       });
-      await manager.save(order);
 
       if (dto.lines) {
         await manager.delete(SaleLine, { orderId: id });
@@ -149,11 +154,13 @@ export class OrdersService {
         );
         await manager.save(lines);
       }
-      return this.findOne(id);
     });
+
+    return this.findOne(id);
   }
 
   async updateStatus(id: string, status: OrderStatus, userId: string): Promise<Order> {
+    // Charger avec les lignes pour les mouvements de stock (DELIVERED)
     const order = await this.findOne(id);
     const allowed: Record<OrderStatus, OrderStatus[]> = {
       [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
@@ -167,6 +174,8 @@ export class OrdersService {
     if (!allowed[order.status].includes(status)) {
       throw new BadRequestException(`Transition ${order.status} → ${status} non autorisée`);
     }
+
+    const updateData: Partial<Order> = { status };
 
     // À la livraison : sortie de stock pour chaque ligne produit tracké
     if (status === OrderStatus.DELIVERED) {
@@ -192,11 +201,12 @@ export class OrdersService {
           }
         }
       }
-      order.deliveredAt = new Date();
+      updateData.deliveredAt = new Date();
     }
 
-    order.status = status;
-    return this.orderRepo.save(order);
+    // Mise à jour ciblée pour éviter le cascade-save sur les lignes
+    await this.orderRepo.update(id, updateData);
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {

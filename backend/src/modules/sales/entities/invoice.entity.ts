@@ -93,7 +93,7 @@ export class Invoice extends BaseEntity {
   @JoinColumn({ name: 'assigned_to_id' })
   assignedTo?: User;
 
-  @OneToMany(() => SaleLine, (l) => l.invoiceId, { cascade: true, eager: false })
+  @OneToMany(() => SaleLine, (l) => l.invoiceId, { eager: false })
   lines: SaleLine[];
 
   @BeforeInsert()

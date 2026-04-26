@@ -75,7 +75,7 @@ export class Quote extends BaseEntity {
   @Column({ name: 'converted_at', type: 'timestamp with time zone', nullable: true })
   convertedAt?: Date;
 
-  @OneToMany(() => SaleLine, (l) => l.quoteId, { cascade: true, eager: false })
+  @OneToMany(() => SaleLine, (l) => l.quoteId, { eager: false })
   lines: SaleLine[];
 
   @BeforeInsert()

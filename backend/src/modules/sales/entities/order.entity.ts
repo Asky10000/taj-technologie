@@ -79,7 +79,7 @@ export class Order extends BaseEntity {
   @JoinColumn({ name: 'assigned_to_id' })
   assignedTo?: User;
 
-  @OneToMany(() => SaleLine, (l) => l.orderId, { cascade: true, eager: false })
+  @OneToMany(() => SaleLine, (l) => l.orderId, { eager: false })
   lines: SaleLine[];
 
   @BeforeInsert()

@@ -99,23 +99,28 @@ export class QuotesService {
   }
 
   async update(id: string, dto: UpdateQuoteDto): Promise<Quote> {
-    const quote = await this.findOne(id);
+    const quote = await this.quoteRepo.findOne({ where: { id } });
+    if (!quote) throw new NotFoundException(`Devis ${id} introuvable`);
     if (quote.status === QuoteStatus.CONVERTED) {
       throw new BadRequestException('Un devis converti ne peut être modifié');
     }
 
-    return this.dataSource.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       const totals = dto.lines
         ? this.calc.calculateDocument(dto.lines, dto.globalDiscountPercent ?? quote.globalDiscountPercent)
         : null;
 
-      Object.assign(quote, {
-        ...dto,
-        issueDate: dto.issueDate ? new Date(dto.issueDate) : quote.issueDate,
-        validUntil: dto.validUntil ? new Date(dto.validUntil) : quote.validUntil,
+      // update() ciblé — évite le cascade-save sur les lignes
+      await manager.update(Quote, id, {
+        ...(dto.subject !== undefined ? { subject: dto.subject } : {}),
+        ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
+        ...(dto.terms !== undefined ? { terms: dto.terms } : {}),
+        ...(dto.issueDate ? { issueDate: new Date(dto.issueDate) } : {}),
+        ...(dto.validUntil ? { validUntil: new Date(dto.validUntil) } : {}),
+        ...(dto.globalDiscountPercent !== undefined ? { globalDiscountPercent: dto.globalDiscountPercent } : {}),
+        ...(dto.assignedToId !== undefined ? { assignedToId: dto.assignedToId } : {}),
         ...(totals ?? {}),
       });
-      await manager.save(quote);
 
       if (dto.lines) {
         await manager.delete(SaleLine, { quoteId: id });
@@ -131,12 +136,15 @@ export class QuotesService {
         );
         await manager.save(lines);
       }
-      return this.findOne(id);
     });
+
+    return this.findOne(id);
   }
 
   async updateStatus(id: string, status: QuoteStatus): Promise<Quote> {
-    const quote = await this.findOne(id);
+    // Charger sans relations pour éviter un cascade-save non désiré
+    const quote = await this.quoteRepo.findOne({ where: { id } });
+    if (!quote) throw new NotFoundException(`Devis ${id} introuvable`);
     const allowed: Record<QuoteStatus, QuoteStatus[]> = {
       [QuoteStatus.DRAFT]: [QuoteStatus.SENT, QuoteStatus.REJECTED],
       [QuoteStatus.SENT]: [QuoteStatus.ACCEPTED, QuoteStatus.REJECTED, QuoteStatus.EXPIRED],
@@ -150,8 +158,8 @@ export class QuotesService {
         `Transition ${quote.status} → ${status} non autorisée`,
       );
     }
-    quote.status = status;
-    return this.quoteRepo.save(quote);
+    await this.quoteRepo.update(id, { status });
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
