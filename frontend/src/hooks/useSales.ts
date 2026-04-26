@@ -4,6 +4,21 @@ import api from '@/lib/api';
 import type { Quote, Order, Invoice, QuoteStatus, OrderStatus, InvoiceStatus, SaleLine } from '@/types/sales.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+function flattenPage<T>(raw: any): PaginatedResponse<T> {
+  if (raw?.meta) {
+    return {
+      items:       raw.items,
+      total:       raw.meta.totalItems,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as PaginatedResponse<T>;
+}
+
 export const salesKeys = {
   quotes:   (p?: object) => ['quotes',   p] as const,
   quote:    (id: string) => ['quotes',   id] as const,
@@ -19,10 +34,10 @@ export function useQuotes(params: { page?: number; limit?: number; search?: stri
   return useQuery({
     queryKey: salesKeys.quotes(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Quote>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/sales/quotes', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Quote>(data.data);
     },
   });
 }
@@ -87,10 +102,10 @@ export function useOrders(params: { page?: number; limit?: number; search?: stri
   return useQuery({
     queryKey: salesKeys.orders(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Order>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/sales/orders', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Order>(data.data);
     },
   });
 }
@@ -138,10 +153,10 @@ export function useInvoices(params: { page?: number; limit?: number; search?: st
   return useQuery({
     queryKey: salesKeys.invoices(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Invoice>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/sales/invoices', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Invoice>(data.data);
     },
   });
 }

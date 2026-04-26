@@ -6,6 +6,21 @@ import type {
 } from '@/types/crm.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+function flattenPage<T>(raw: any): PaginatedResponse<T> {
+  if (raw?.meta) {
+    return {
+      items:       raw.items,
+      total:       raw.meta.totalItems,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as PaginatedResponse<T>;
+}
+
 // ── Clés de cache ────────────────────────────────────────────────
 export const crmKeys = {
   customers:     (params?: object) => ['customers', params] as const,
@@ -24,11 +39,11 @@ export function useCustomers(params: {
   return useQuery({
     queryKey: crmKeys.customers(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Customer>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/crm/customers',
         { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Customer>(data.data);
     },
   });
 }
@@ -162,11 +177,11 @@ export function useProspects(params: {
   return useQuery({
     queryKey: crmKeys.prospects(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Prospect>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/crm/prospects',
         { params: { page: 1, limit: 50, ...params } },
       );
-      return data.data;
+      return flattenPage<Prospect>(data.data);
     },
   });
 }

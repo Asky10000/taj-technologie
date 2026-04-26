@@ -4,6 +4,21 @@ import api from '@/lib/api';
 import type { Product, ProductCategory, ProductStatus, ProductType, CreateProductPayload } from '@/types/product.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+function flattenPage<T>(raw: any): PaginatedResponse<T> {
+  if (raw?.meta) {
+    return {
+      items:       raw.items,
+      total:       raw.meta.totalItems,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as PaginatedResponse<T>;
+}
+
 export const productKeys = {
   list:       (p?: object)   => ['products', p]            as const,
   one:        (id: string)   => ['products', id]           as const,
@@ -51,10 +66,10 @@ export function useProductsList(params: {
   return useQuery({
     queryKey: productKeys.list(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Product>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/products', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Product>(data.data);
     },
   });
 }

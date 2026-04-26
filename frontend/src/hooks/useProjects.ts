@@ -4,6 +4,21 @@ import api from '@/lib/api';
 import type { Project, ProjectTask, TimeEntry, ProjectStatus, TaskStatus } from '@/types/projects.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+function flattenPage<T>(raw: any): PaginatedResponse<T> {
+  if (raw?.meta) {
+    return {
+      items:       raw.items,
+      total:       raw.meta.totalItems,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as PaginatedResponse<T>;
+}
+
 export const projectKeys = {
   list:        (p?: object) => ['projects', p]             as const,
   detail:      (id: string) => ['projects', id]            as const,
@@ -17,10 +32,10 @@ export function useProjects(params: { page?: number; limit?: number; search?: st
   return useQuery({
     queryKey: projectKeys.list(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Project>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/projects', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<Project>(data.data);
     },
   });
 }

@@ -4,6 +4,21 @@ import api from '@/lib/api';
 import type { Ticket, TicketComment, TicketStatus } from '@/types/tickets.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+function flattenPage<T>(raw: any): PaginatedResponse<T> {
+  if (raw?.meta) {
+    return {
+      items:       raw.items,
+      total:       raw.meta.totalItems,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as PaginatedResponse<T>;
+}
+
 export const ticketKeys = {
   list:    (p?: object) => ['tickets', p]       as const,
   detail:  (id: string) => ['tickets', id]      as const,
@@ -17,10 +32,10 @@ export function useTickets(params: {
   return useQuery({
     queryKey: ticketKeys.list(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<Ticket>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/tickets', { params: { page: 1, limit: 25, ...params } },
       );
-      return data.data;
+      return flattenPage<Ticket>(data.data);
     },
   });
 }
@@ -123,7 +138,7 @@ export function useRateTicket() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, score }: { id: string; score: number }) =>
-      api.patch<ApiResponse<Ticket>>(`/tickets/${id}/satisfaction`, { satisfactionScore: score }).then((r) => r.data.data),
+      api.post<ApiResponse<Ticket>>(`/tickets/${id}/satisfaction`, { score }).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ticketKeys.detail(id) });
       toast.success('Note enregistrée');

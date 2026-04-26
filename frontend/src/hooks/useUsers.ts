@@ -4,6 +4,21 @@ import api from '@/lib/api';
 import type { User, UserRole, LoginHistory } from '@/types/user.types';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 
+function flattenPage<T>(raw: any): PaginatedResponse<T> {
+  if (raw?.meta) {
+    return {
+      items:       raw.items,
+      total:       raw.meta.totalItems,
+      page:        raw.meta.page,
+      limit:       raw.meta.limit,
+      totalPages:  raw.meta.totalPages,
+      hasNextPage: raw.meta.hasNextPage,
+      hasPrevPage: raw.meta.hasPreviousPage,
+    };
+  }
+  return raw as PaginatedResponse<T>;
+}
+
 export const userKeys = {
   list: (p?: object) => ['users', p] as const,
   one:  (id: string) => ['users', id] as const,
@@ -13,10 +28,10 @@ export function useUsers(params: { page?: number; limit?: number; search?: strin
   return useQuery({
     queryKey: userKeys.list(params),
     queryFn: async () => {
-      const { data } = await api.get<ApiResponse<PaginatedResponse<User>>>(
+      const { data } = await api.get<ApiResponse<any>>(
         '/users', { params: { page: 1, limit: 20, ...params } },
       );
-      return data.data;
+      return flattenPage<User>(data.data);
     },
   });
 }
