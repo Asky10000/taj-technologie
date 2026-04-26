@@ -27,13 +27,15 @@ export class CreateQuoteDto {
   @IsString()
   terms?: string;
 
-  @ApiProperty({ description: 'Date d\'émission ISO 8601' })
+  @ApiPropertyOptional({ description: 'Date d\'émission ISO 8601 (défaut: aujourd\'hui)' })
+  @IsOptional()
   @IsDateString()
-  issueDate: string;
+  issueDate?: string;
 
-  @ApiProperty({ description: 'Date de validité ISO 8601' })
+  @ApiPropertyOptional({ description: 'Date de validité ISO 8601 (défaut: +30 jours)' })
+  @IsOptional()
   @IsDateString()
-  validUntil: string;
+  validUntil?: string;
 
   @ApiPropertyOptional({ default: 0, minimum: 0, maximum: 100 })
   @IsOptional()

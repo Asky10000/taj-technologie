@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe,
+  Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe, BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { QuotesService } from './services/quotes.service';
@@ -68,6 +68,36 @@ export class SalesController {
   @ApiOperation({ summary: 'Changer le statut d\'un devis' })
   updateQuoteStatus(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateQuoteStatusDto) {
     return this.quotesService.updateStatus(id, dto.status);
+  }
+
+  @Post('quotes/:id/convert')
+  @Roles(Role.SALES, Role.MANAGER, Role.ADMIN, Role.SUPER_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Convertir un devis accepté en commande' })
+  async convertQuote(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) {
+    const quote = await this.quotesService.findOne(id);
+    if (quote.status !== QuoteStatus.ACCEPTED) {
+      throw new BadRequestException('Le devis doit être ACCEPTÉ pour être converti en commande');
+    }
+    return this.ordersService.create({
+      customerId: quote.customerId,
+      quoteId: quote.id,
+      subject: quote.subject ?? undefined,
+      notes: quote.notes ?? undefined,
+      terms: quote.terms ?? undefined,
+      orderDate: new Date().toISOString(),
+      globalDiscountPercent: quote.globalDiscountPercent ?? 0,
+      lines: (quote.lines ?? []).map((l) => ({
+        productId: l.productId ?? undefined,
+        description: l.description,
+        quantity: Number(l.quantity),
+        unitPrice: Number(l.unitPrice),
+        discountType: l.discountType as any,
+        discountValue: Number(l.discountValue ?? 0),
+        taxRate: Number(l.taxRate ?? 20),
+        sortOrder: l.sortOrder ?? 0,
+      })),
+    }, u.id);
   }
 
   @Delete('quotes/:id')

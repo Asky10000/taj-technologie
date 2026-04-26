@@ -180,7 +180,14 @@ export default function QuotesPage() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!lines.length || !lines[0].description) return;
-            await createMutation.mutateAsync({ ...form, lines, globalDiscountPercent: form.globalDiscountPercent || 0 });
+            await createMutation.mutateAsync({
+              customerId: form.customerId,
+              issueDate: new Date().toISOString().split('T')[0],
+              ...(form.validUntil ? { validUntil: form.validUntil } : {}),
+              ...(form.notes ? { notes: form.notes } : {}),
+              globalDiscountPercent: form.globalDiscountPercent || 0,
+              lines,
+            });
             setShowModal(false);
             setForm({ customerId: '', validUntil: '', globalDiscountPercent: 0, notes: '' });
             setLines([{ description: '', quantity: 1, unitPrice: 0, taxRate: 20, discountType: 'PERCENT', discountValue: 0 }]);
