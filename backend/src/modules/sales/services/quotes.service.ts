@@ -25,7 +25,9 @@ export class QuotesService {
   ) {}
 
   async create(dto: CreateQuoteDto, createdById: string): Promise<Quote> {
-    return this.dataSource.transaction(async (manager) => {
+    let savedId!: string;
+
+    await this.dataSource.transaction(async (manager) => {
       const totals = this.calc.calculateDocument(dto.lines, dto.globalDiscountPercent);
 
       const quote = manager.create(Quote, {
@@ -41,6 +43,7 @@ export class QuotesService {
         ...totals,
       });
       const saved = await manager.save(quote);
+      savedId = saved.id;
 
       const lines = dto.lines.map((l, idx) =>
         manager.create(SaleLine, {
@@ -55,8 +58,10 @@ export class QuotesService {
       await manager.save(lines);
 
       this.logger.log(`Devis créé : ${saved.number}`);
-      return this.findOne(saved.id);
     });
+
+    // findOne est appelé APRÈS le commit de la transaction pour voir les données engagées
+    return this.findOne(savedId);
   }
 
   async findAll(query: QueryQuotesDto): Promise<PaginatedResult<Quote>> {

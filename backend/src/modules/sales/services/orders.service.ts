@@ -30,7 +30,9 @@ export class OrdersService {
   ) {}
 
   async create(dto: CreateOrderDto, createdById: string): Promise<Order> {
-    return this.dataSource.transaction(async (manager) => {
+    let savedId!: string;
+
+    await this.dataSource.transaction(async (manager) => {
       const totals = this.calc.calculateDocument(dto.lines, dto.globalDiscountPercent);
 
       const order = manager.create(Order, {
@@ -50,6 +52,7 @@ export class OrdersService {
         ...totals,
       });
       const saved = await manager.save(order);
+      savedId = saved.id;
 
       const lines = dto.lines.map((l, idx) =>
         manager.create(SaleLine, {
@@ -73,8 +76,9 @@ export class OrdersService {
       }
 
       this.logger.log(`Commande créée : ${saved.number}`);
-      return this.findOne(saved.id);
     });
+
+    return this.findOne(savedId);
   }
 
   async findAll(query: QueryOrdersDto): Promise<PaginatedResult<Order>> {

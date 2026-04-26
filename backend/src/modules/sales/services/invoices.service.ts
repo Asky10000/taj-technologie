@@ -25,7 +25,9 @@ export class InvoicesService {
   ) {}
 
   async create(dto: CreateInvoiceDto, createdById: string): Promise<Invoice> {
-    return this.dataSource.transaction(async (manager) => {
+    let savedId!: string;
+
+    await this.dataSource.transaction(async (manager) => {
       const totals = this.calc.calculateDocument(dto.lines, dto.globalDiscountPercent);
 
       const invoice = manager.create(Invoice, {
@@ -43,6 +45,7 @@ export class InvoicesService {
         ...totals,
       });
       const saved = await manager.save(invoice);
+      savedId = saved.id;
 
       const lines = dto.lines.map((l, idx) =>
         manager.create(SaleLine, {
@@ -57,8 +60,9 @@ export class InvoicesService {
       await manager.save(lines);
 
       this.logger.log(`Facture créée : ${saved.number}`);
-      return this.findOne(saved.id);
     });
+
+    return this.findOne(savedId);
   }
 
   async findAll(query: QueryInvoicesDto): Promise<PaginatedResult<Invoice>> {
