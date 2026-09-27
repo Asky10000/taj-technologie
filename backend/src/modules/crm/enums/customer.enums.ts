@@ -1,0 +1,46 @@
+export enum CustomerType {
+  INDIVIDUAL = 'INDIVIDUAL',
+  COMPANY = 'COMPANY',
+  ASSOCIATION = 'ASSOCIATION',
+  PUBLIC = 'PUBLIC',
+}
+
+export enum CustomerStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  BLACKLISTED = 'BLACKLISTED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum ProspectStatus {
+  NEW = 'NEW',
+  QUALIFIED = 'QUALIFIED',
+  CONTACTED = 'CONTACTED',
+  PROPOSAL_SENT = 'PROPOSAL_SENT',
+  NEGOTIATION = 'NEGOTIATION',
+  WON = 'WON',
+  LOST = 'LOST',
+  ON_HOLD = 'ON_HOLD',
+}
+
+export enum ProspectSource {
+  WEBSITE = 'WEBSITE',
+  REFERRAL = 'REFERRAL',
+  SOCIAL_MEDIA = 'SOCIAL_MEDIA',
+  EMAIL_CAMPAIGN = 'EMAIL_CAMPAIGN',
+  COLD_CALL = 'COLD_CALL',
+  TRADE_SHOW = 'TRADE_SHOW',
+  PARTNER = 'PARTNER',
+  OTHER = 'OTHER',
+}
+
+export enum InteractionType {
+  CALL = 'CALL',
+  EMAIL = 'EMAIL',
+  MEETING = 'MEETING',
+  VISIT = 'VISIT',
+  NOTE = 'NOTE',
+  PROPOSAL = 'PROPOSAL',
+  COMPLAINT = 'COMPLAINT',
+  OTHER = 'OTHER',
+}

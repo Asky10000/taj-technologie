@@ -1,0 +1,41 @@
+export enum ProjectStatus {
+  DRAFT = 'DRAFT',
+  PLANNED = 'PLANNED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  ON_HOLD = 'ON_HOLD',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum ProjectType {
+  INSTALLATION = 'INSTALLATION',
+  MIGRATION = 'MIGRATION',
+  MAINTENANCE = 'MAINTENANCE',
+  DEVELOPMENT = 'DEVELOPMENT',
+  AUDIT = 'AUDIT',
+  TRAINING = 'TRAINING',
+  OTHER = 'OTHER',
+}
+
+export enum TaskStatus {
+  TODO = 'TODO',
+  IN_PROGRESS = 'IN_PROGRESS',
+  REVIEW = 'REVIEW',
+  DONE = 'DONE',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum TaskPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
+}
+
+export enum MemberRole {
+  PROJECT_MANAGER = 'PROJECT_MANAGER',
+  LEAD_TECH = 'LEAD_TECH',
+  TECHNICIAN = 'TECHNICIAN',
+  CONSULTANT = 'CONSULTANT',
+  OBSERVER = 'OBSERVER',
+}

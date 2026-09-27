@@ -1,0 +1,28 @@
+# Caddy — reverse proxy avec HTTPS automatique (Let's Encrypt)
+# Un seul domaine : /api/* → backend, tout le reste → frontend (même origine).
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	# API NestJS (préfixe global /api/v1)
+	handle /api/* {
+		reverse_proxy backend:3001
+	}
+
+	# Application Next.js
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	# Certificat TLS émis/renouvelé automatiquement pour ce compte
+	tls {$ACME_EMAIL}
+
+	# En-têtes de sécurité de base
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}

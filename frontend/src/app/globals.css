@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background:   0 0% 98%;
+    --foreground:   222 47% 11%;
+
+    --card:         0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --primary:      221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary:    210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted:        210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent:       210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive:  0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border:       214 32% 91%;
+    --input:        214 32% 91%;
+    --ring:         221 83% 53%;
+
+    --radius:       0.75rem;
+
+    /* Polices (chargées via <link> dans le layout) */
+    --font-inter:   'Inter';
+    --font-space:   'Space Grotesk';
+
+    /* Sidebar */
+    --sidebar:          222 47% 11%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-border:   222 47% 18%;
+    --sidebar-accent:   222 47% 18%;
+  }
+
+  .dark {
+    /* ── Thème futuriste sobre — bleu nuit presque noir + accent cyan ── */
+    --background:   222 44% 5%;    /* #080B14 */
+    --foreground:   213 30% 93%;   /* blanc cassé */
+
+    --card:         221 40% 9%;    /* surface bleu sombre */
+    --card-foreground: 213 30% 93%;
+
+    --primary:      214 88% 56%;   /* azur premium (texte blanc lisible) */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary:    220 33% 14%;
+    --secondary-foreground: 213 30% 93%;
+
+    --muted:        220 30% 13%;
+    --muted-foreground: 215 20% 64%;  /* gris bleuté */
+
+    --accent:       220 33% 15%;
+    --accent-foreground: 213 30% 93%;
+
+    --destructive:  0 72% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border:       217 30% 16%;   /* bordures fines discrètes */
+    --input:        217 28% 19%;
+    --ring:         191 92% 76%;    /* cyan #8AE7FB — accent */
+
+    --sidebar:          224 46% 5%;
+    --sidebar-foreground: 213 28% 88%;
+    --sidebar-border:   220 30% 12%;
+    --sidebar-accent:   220 33% 13%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Scrollbar personnalisée */
+  ::-webkit-scrollbar       { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/30; }
+}
+
+/* ── Thème futuriste — finitions globales ────────────────────────── */
+@layer base {
+  /* Titres en Space Grotesk, contenu en Inter */
+  h1, h2, h3, h4, h5, .font-display {
+    font-family: var(--font-space), var(--font-inter), system-ui, sans-serif;
+    letter-spacing: -0.011em;
+  }
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+}
+
+/* Fond bleu nuit + lueurs radiales très subtiles (thème sombre) */
+.dark body {
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(48rem 48rem at 8% -8%,  hsl(214 88% 55% / 0.06), transparent 60%),
+    radial-gradient(42rem 42rem at 100% 0%, hsl(191 92% 62% / 0.05), transparent 55%);
+  background-repeat: no-repeat;
+}
+
+/* Surfaces : léger verre dépoli translucide + ombre douce (sombre) */
+.dark .bg-card {
+  background-color: hsl(var(--card) / 0.72);
+  box-shadow:
+    inset 0 1px 0 0 hsl(210 40% 90% / 0.04),
+    0 14px 32px -24px hsl(222 70% 2% / 0.9);
+}
+
+/* Boutons principaux : très légère lueur cyan */
+.dark .bg-primary {
+  box-shadow: 0 8px 22px -14px hsl(var(--ring) / 0.5);
+}
+
+/* Focus visible cyan, cohérent et accessible */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid hsl(var(--ring) / 0.75);
+  outline-offset: 2px;
+  border-radius: calc(var(--radius) - 4px);
+}
+
+/* Sélection & scrollbar teintées accent */
+::selection { background: hsl(var(--ring) / 0.26); color: hsl(var(--foreground)); }
+.dark ::-webkit-scrollbar-thumb { @apply bg-border; }
+.dark ::-webkit-scrollbar-thumb:hover { background: hsl(217 30% 26%); }
+
+/* Transitions rapides et discrètes (150–220 ms) */
+a, button, [role="button"] {
+  transition: color .18s ease, background-color .18s ease,
+              border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+/* Respect de la préférence de mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Impression / Export PDF ─────────────────────────────────────── */
+/* Le document imprimable est masqué à l'écran et révélé à l'impression. */
+.print-only { display: none; }
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  /* Masque tout le chrome de l'application (menu, en-tête, boutons…) */
+  .no-print { display: none !important; }
+  /* Affiche uniquement le document */
+  .print-only { display: block !important; }
+  .print-area {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

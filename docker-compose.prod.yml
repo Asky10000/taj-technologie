@@ -1,0 +1,129 @@
+# ─────────────────────────────────────────────────────────────────
+# TAJ Technologie — Déploiement PRODUCTION (VPS + Docker + HTTPS auto)
+#   Lancer avec :  docker compose -f docker-compose.prod.yml up -d --build
+# ─────────────────────────────────────────────────────────────────
+
+services:
+  # ── PostgreSQL (non exposé publiquement) ──────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: taj_postgres
+    restart: always
+    environment:
+      POSTGRES_USER:     ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [taj_network]
+
+  # ── Redis (non exposé publiquement) ───────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: taj_redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$REDIS_PASSWORD" ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [taj_network]
+
+  # ── Backend (NestJS) ──────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taj_backend
+    restart: always
+    environment:
+      NODE_ENV:           production
+      PORT:               3001
+      DB_HOST:            postgres
+      DB_PORT:            5432
+      DB_USERNAME:        ${DB_USERNAME}
+      DB_PASSWORD:        ${DB_PASSWORD}
+      DB_NAME:            ${DB_NAME}
+      DB_SSL:             'false'                      # Postgres interne : pas de SSL
+      DB_SYNCHRONIZE:     ${DB_SYNCHRONIZE:-false}     # 'true' au TOUT PREMIER lancement, puis 'false'
+      REDIS_HOST:         redis
+      REDIS_PORT:         6379
+      REDIS_PASSWORD:     ${REDIS_PASSWORD}
+      JWT_SECRET:         ${JWT_SECRET}
+      JWT_ACCESS_EXPIRY:  ${JWT_ACCESS_EXPIRY:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+      CORS_ORIGINS:       https://${DOMAIN}
+      SEED_ADMIN_EMAIL:   ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3001/api/v1/health || exit 1']
+      interval: 20s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    networks: [taj_network]
+
+  # ── Frontend (Next.js) ────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Vide = le client appelle /api/v1 en RELATIF (même origine),
+        # routé vers le backend par Caddy → indépendant du domaine.
+        NEXT_PUBLIC_API_URL: ''
+    container_name: taj_frontend
+    restart: always
+    environment:
+      NODE_ENV: production
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/ || exit 1']
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+    networks: [taj_network]
+
+  # ── Caddy (reverse proxy + HTTPS Let's Encrypt automatique) ───────
+  caddy:
+    image: caddy:2-alpine
+    container_name: taj_caddy
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      DOMAIN:     ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      frontend: { condition: service_healthy }
+      backend:  { condition: service_healthy }
+    networks: [taj_network]
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  taj_network:
+    driver: bridge

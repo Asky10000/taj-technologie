@@ -1,0 +1,31 @@
+# ── Secrets & environnement (NE JAMAIS committer) ──────────────────
+.env
+.env.*
+!.env.example
+!.env.production.example
+**/.env
+**/.env.local
+**/.env.*.local
+
+# ── Dépendances ────────────────────────────────────────────────────
+node_modules/
+**/node_modules/
+
+# ── Build / sortie ─────────────────────────────────────────────────
+dist/
+**/dist/
+.next/
+**/.next/
+build/
+coverage/
+*.tsbuildinfo
+
+# ── Logs & divers ──────────────────────────────────────────────────
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# ── Sauvegardes / données ──────────────────────────────────────────
+backups/
+*.sql.gz
