@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsArray, IsBoolean, IsDateString, IsEnum, IsNumber,
+  IsArray, IsDateString, IsEnum, IsNumber,
   IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';

@@ -7,15 +7,13 @@ import {
   IsInt,
   IsUUID,
   IsArray,
-  IsBoolean,
   MaxLength,
   MinLength,
   Min,
   Max,
   IsObject,
-  IsPositive,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   ProductType,
   ProductStatus,

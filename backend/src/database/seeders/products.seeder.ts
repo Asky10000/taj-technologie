@@ -4,7 +4,6 @@ import { Category } from '../../modules/products/entities/category.entity';
 import { Product } from '../../modules/products/entities/product.entity';
 import {
   ProductType,
-  ProductStatus,
   PriceType,
   StockPolicy,
 } from '../../modules/products/enums/product.enums';

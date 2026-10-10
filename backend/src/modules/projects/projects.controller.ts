@@ -3,7 +3,7 @@ import {
   ParseUUIDPipe, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import {
-  ApiTags, ApiBearerAuth, ApiOperation, ApiResponse,
+  ApiTags, ApiBearerAuth, ApiOperation,
 } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
