@@ -115,35 +115,36 @@ npm run dev                  # http://localhost:3000
 
 ## Base de données : schéma & migrations
 
-> **Important.** Le schéma est actuellement créé via **`synchronize`** de
-> TypeORM, pas par des migrations de tables. La seule migration existante
-> (`InitialSchema`) n'active que des extensions PostgreSQL
-> (`uuid-ossp`, `pgcrypto`, `citext`) — elle ne crée **aucune table**.
-> Les 25 entités ne sont donc pas couvertes par une migration.
+Le schéma est géré par des **migrations TypeORM**
+(`backend/src/database/migrations/`) :
 
-Comportement de `synchronize` (voir `backend/src/config/database.config.ts`) :
+- `InitialSchema` — extensions PostgreSQL (`uuid-ossp`, `pgcrypto`, `citext`).
+- `BaselineSchema` — l'ensemble des tables et types enum (les 24 tables).
 
-- **Développement** : activé par défaut — les tables sont créées/mises à jour
-  automatiquement depuis les entités.
-- **Production** : `.env.production.example` fixe `DB_SYNCHRONIZE=false`. La
-  procédure actuelle consiste à passer `DB_SYNCHRONIZE=true` **au tout premier
-  démarrage** sur une base vide, puis à repasser à `false` (voir
-  `DEPLOYMENT.md`).
+Comportement selon `DB_SYNCHRONIZE` (voir `backend/src/database/database.module.ts`) :
 
-⚠️ `synchronize` en production est risqué : TypeORM peut altérer ou supprimer
-des colonnes et provoquer une perte de données. Il est recommandé de **générer
-une migration de référence** et de désactiver `synchronize` :
+- **Production** (`DB_SYNCHRONIZE=false`) : les migrations en attente sont
+  appliquées **automatiquement au démarrage** du backend (`migrationsRun`).
+  Un déploiement sur base vide crée donc tout le schéma, sans `synchronize`.
+- **Développement** (`DB_SYNCHRONIZE=true`, défaut) : `synchronize` gère le
+  schéma depuis les entités (pratique pour itérer) ; `migrationsRun` est alors
+  désactivé pour éviter les conflits.
+
+⚠️ Ne jamais mettre `DB_SYNCHRONIZE=true` sur une base de production contenant
+des données (risque d'altération/perte).
+
+**Faire évoluer le schéma** après avoir modifié une entité :
 
 ```bash
 cd backend
-# 1. Base de dev à jour, puis générer la migration depuis les entités :
-npm run migration:generate -- src/database/migrations/BaselineSchema
-# 2. Vérifier le SQL généré, puis l'appliquer sur une base vide :
-DB_SYNCHRONIZE=false npm run migration:run
+# base de dev à jour, puis générer la migration depuis les entités :
+npm run migration:generate -- src/database/migrations/NomDeLaMigration
+# vérifier le SQL généré, puis committer le fichier
 ```
 
-Ensuite, laissez `DB_SYNCHRONIZE=false` partout et gérez chaque évolution de
-schéma par une nouvelle migration.
+En production, la migration s'applique seule au redémarrage du backend
+(`git pull` + rebuild). Voir `DEPLOYMENT.md` §7 (dont la procédure pour
+**baseliner** une base déjà créée par `synchronize`).
 
 ---
 

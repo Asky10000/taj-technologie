@@ -12,7 +12,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => {
+        const synchronize = configService.get<boolean>('database.synchronize');
+        return {
         type: 'postgres' as const,
         host: configService.get<string>('database.host'),
         port: configService.get<number>('database.port'),
@@ -22,7 +24,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         migrationsTableName: 'migrations_history',
-        synchronize: configService.get<boolean>('database.synchronize'),
+        synchronize,
+        // En production (synchronize=false), applique automatiquement les
+        // migrations en attente au démarrage. En dev (synchronize=true), on
+        // laisse la synchro gérer le schéma pour ne pas entrer en conflit.
+        migrationsRun: !synchronize,
         logging: configService.get<boolean>('database.logging'),
         autoLoadEntities: true,
         // SSL piloté explicitement par DB_SSL (true pour une base managée
@@ -33,7 +39,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             : false,
         retryAttempts: 5,
         retryDelay: 3000,
-      }),
+        };
+      },
     }),
   ],
   exports: [TypeOrmModule],
