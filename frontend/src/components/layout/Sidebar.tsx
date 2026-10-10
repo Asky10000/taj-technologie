@@ -1,10 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Building2, Warehouse, FileText,
-  Ticket, FolderKanban, Truck, BarChart3, Settings, Monitor, ChevronRight,
+  Ticket, FolderKanban, Truck, BarChart3, Settings, ChevronRight,
   LogOut, X, Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -68,8 +69,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       >
         {/* Logo */}
         <div className="h-16 flex items-center gap-3 px-5 border-b border-sidebar-border flex-shrink-0">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <Monitor className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <Image src="/logo-mark.png" alt="TAJ Technologie" width={32} height={32} className="w-full h-full object-contain p-0.5" priority />
           </div>
           <div className="overflow-hidden flex-1">
             <p className="text-sidebar-foreground font-bold text-sm leading-tight truncate">

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2, Monitor } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
@@ -43,58 +44,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Panneau gauche — branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <Monitor className="w-5 h-5 text-white" />
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <Image
+              src="/logo.png"
+              alt="TAJ Technologie"
+              width={245}
+              height={196}
+              priority
+              className="h-28 w-auto"
+            />
           </div>
-          <span className="text-sidebar-foreground font-bold text-xl tracking-tight">
-            TAJ Technologie
-          </span>
         </div>
-
-        <div className="space-y-4">
-          <h1 className="text-4xl font-bold text-sidebar-foreground leading-snug">
-            Gérez votre activité<br />IT en toute sérénité
-          </h1>
-          <p className="text-sidebar-foreground/60 text-lg leading-relaxed">
-            CRM, facturation, inventaire, projets et support — tout en un seul outil.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Clients', value: '500+' },
-            { label: 'Tickets résolus', value: '12k+' },
-            { label: 'CA géré', value: '2Mds FCFA+' },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-sidebar-accent/50 rounded-xl p-4">
-              <div className="text-2xl font-bold text-sidebar-foreground">{stat.value}</div>
-              <div className="text-sidebar-foreground/50 text-sm mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Panneau droit — formulaire */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo mobile */}
-          <div className="flex lg:hidden items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Monitor className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl">TAJ Technologie</span>
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Connexion</h2>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Entrez vos identifiants pour accéder à votre espace
-            </p>
-          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}
@@ -181,11 +145,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          <p className="text-center text-xs text-muted-foreground">
-            TAJ Technologie ERP v{process.env.NEXT_PUBLIC_APP_VERSION} — usage interne uniquement
-          </p>
-        </div>
       </div>
     </div>
   );
