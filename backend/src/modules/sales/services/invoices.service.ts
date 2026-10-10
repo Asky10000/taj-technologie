@@ -2,7 +2,7 @@ import {
   Injectable, NotFoundException, BadRequestException, Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Brackets, LessThan } from 'typeorm';
+import { Repository, DataSource, Brackets } from 'typeorm';
 import { Invoice } from '../entities/invoice.entity';
 import { Order } from '../entities/order.entity';
 import { SaleLine } from '../entities/sale-line.entity';

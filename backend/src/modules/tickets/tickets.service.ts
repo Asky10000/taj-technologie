@@ -3,7 +3,7 @@ import {
   ForbiddenException, Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Brackets, IsNull, Not } from 'typeorm';
+import { Repository, DataSource, Brackets } from 'typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { TicketComment } from './entities/ticket-comment.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -149,7 +149,7 @@ export class TicketsService {
   // ─────────────────────────────────────────────────────────────
   // WORKFLOW
   // ─────────────────────────────────────────────────────────────
-  async updateStatus(id: string, dto: UpdateTicketStatusDto, userId: string): Promise<Ticket> {
+  async updateStatus(id: string, dto: UpdateTicketStatusDto, _userId: string): Promise<Ticket> {
     const ticket = await this.findOne(id);
     const allowed = this.ALLOWED_TRANSITIONS[ticket.status];
 

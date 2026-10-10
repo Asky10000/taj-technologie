@@ -4,7 +4,7 @@ import { CreateOrderDto } from './create-order.dto';
 import { CreateInvoiceDto } from './create-invoice.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsEnum, IsNumber, IsOptional, IsString, IsUUID, IsDateString, Min, MaxLength,
+  IsEnum, IsNumber, IsOptional, IsString, IsDateString, Min, MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentMethod } from '../enums/sales.enums';

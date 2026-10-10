@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Brackets, LessThanOrEqual } from 'typeorm';
+import { Repository, DataSource, Brackets } from 'typeorm';
 import { Stock } from './entities/stock.entity';
 import { StockMovement } from './entities/stock-movement.entity';
 import { Product } from '../products/entities/product.entity';
@@ -15,7 +15,6 @@ import { UpdateStockDto } from './dto/update-stock.dto';
 import { CreateMovementDto, AdjustStockDto } from './dto/stock-movement.dto';
 import { QueryStockDto, QueryMovementsDto } from './dto/query-stock.dto';
 import { MovementType, MovementReason, StockAlertLevel } from './enums/inventory.enums';
-import { StockPolicy } from '../products/enums/product.enums';
 import { paginate } from '../../common/utils/pagination.util';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 
@@ -133,7 +132,7 @@ export class InventoryService {
   }
 
   /** Retourne le stock existant ou en crée un vide (pour la réception fournisseur) */
-  async findOrCreateStock(productId: string, createdById: string): Promise<Stock> {
+  async findOrCreateStock(productId: string, _createdById: string): Promise<Stock> {
     const existing = await this.stockRepo.findOne({ where: { productId } });
     if (existing) return existing;
 
@@ -225,8 +224,6 @@ export class InventoryService {
     createdById: string,
   ): Promise<StockMovement> {
     const stock = await this.findOneStock(stockId);
-    const diff = dto.newQuantity - Number(stock.quantity);
-    const type = diff >= 0 ? MovementType.IN : MovementType.OUT;
 
     return this.addMovement(
       {
@@ -248,7 +245,8 @@ export class InventoryService {
     stockId: string,
     query: QueryMovementsDto,
   ): Promise<PaginatedResult<StockMovement>> {
-    const stock = await this.findOneStock(stockId);
+    // Vérifie l'existence du stock (lève NotFoundException sinon).
+    await this.findOneStock(stockId);
     const qb = this.movementRepo
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.createdBy', 'createdBy')

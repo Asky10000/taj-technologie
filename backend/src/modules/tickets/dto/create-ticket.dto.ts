@@ -1,9 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsArray, IsEnum, IsInt, IsOptional, IsString, IsUUID,
-  MaxLength, Min, MinLength, Max,
+  IsArray, IsEnum, IsOptional, IsString, IsUUID,
+  MaxLength, MinLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import {
   TicketPriority, TicketCategory, TicketSource,
 } from '../enums/ticket.enums';

@@ -10,7 +10,6 @@ import {
   Min,
   Matches,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
 import { ProductType } from '../enums/product.enums';
 
 export class CreateCategoryDto {

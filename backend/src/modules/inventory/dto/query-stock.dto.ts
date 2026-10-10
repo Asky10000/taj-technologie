@@ -1,8 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
-import { StockAlertLevel } from '../enums/inventory.enums';
 
 export class QueryStockDto extends PaginationDto {
   @ApiPropertyOptional({ description: 'Uniquement les articles en alerte ou rupture' })

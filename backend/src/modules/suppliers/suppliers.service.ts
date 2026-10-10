@@ -21,7 +21,6 @@ import {
 import { PurchaseOrderStatus, PaymentStatus } from './enums/supplier.enums';
 import { InventoryService } from '../inventory/inventory.service';
 import { MovementType, MovementReason } from '../inventory/enums/inventory.enums';
-import { StockPolicy } from '../products/enums/product.enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { paginate } from '../../common/utils/pagination.util';
