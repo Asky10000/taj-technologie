@@ -66,24 +66,23 @@ Points importants :
 
 ## 4. Premier démarrage (création du schéma)
 
-La base est vide : on crée le schéma **une seule fois** avec la synchro TypeORM.
+Le schéma est géré par des **migrations TypeORM**. Avec `DB_SYNCHRONIZE=false`
+(valeur par défaut du `.env`), le backend applique automatiquement les
+migrations en attente **à chaque démarrage** (`migrationsRun`). Sur une base
+vide, la migration `InitialSchema` (extensions) puis `BaselineSchema` (tables)
+créent donc tout le schéma, sans intervention.
 
 ```bash
-# 1) Premier lancement AVEC création du schéma
-DB_SYNCHRONIZE=true docker compose -f docker-compose.prod.yml up -d --build
+# Build + démarrage (le schéma est créé par les migrations)
+docker compose -f docker-compose.prod.yml up -d --build
 
-# 2) Vérifier que tout est "healthy" (attendre ~1 min)
+# Vérifier que tout est "healthy" (attendre ~1 min)
 docker compose -f docker-compose.prod.yml ps
-
-# 3) IMPORTANT : re-lancer SANS la synchro (sécurité des données)
-#    (DB_SYNCHRONIZE=false est déjà la valeur par défaut du .env)
-docker compose -f docker-compose.prod.yml up -d
 ```
 
-> ⚠️ Laissez ensuite `DB_SYNCHRONIZE=false`. Ne le remettez jamais à `true`
-> sur une base contenant des données réelles (risque de perte). Pour les
-> évolutions futures du schéma, on mettra en place des **migrations TypeORM**
-> (voir §7).
+> ⚠️ Laissez `DB_SYNCHRONIZE=false` en production. Ne le mettez **jamais** à
+> `true` sur une base contenant des données (risque de perte). Toute évolution
+> de schéma passe désormais par une migration (voir §7).
 
 Caddy obtient automatiquement le certificat HTTPS au premier accès au domaine.
 
@@ -124,11 +123,41 @@ gunzip -c backup.sql.gz | docker exec -i taj_postgres psql -U "$DB_USERNAME" "$D
 
 ---
 
-## 7. À prévoir ensuite (recommandé)
+## 7. Faire évoluer le schéma (migrations TypeORM)
 
-- **Migrations TypeORM** : générer une migration initiale puis gérer le schéma
-  par migrations (`npm run migration:generate` / `migration:run`) au lieu de la
-  synchro — indispensable dès qu'il y a des données réelles.
+Le schéma est versionné dans `backend/src/database/migrations/`. Les migrations
+en attente sont appliquées automatiquement au démarrage du backend
+(`migrationsRun`, actif quand `DB_SYNCHRONIZE=false`).
+
+**Créer une migration après avoir modifié une entité** (sur une machine de dev
+avec une base à jour) :
+```bash
+cd backend
+npm run migration:generate -- src/database/migrations/NomDeLaMigration
+# vérifier le SQL généré, committer le fichier
+```
+
+**Déployer l'évolution** : `git pull` + `up -d --build` sur le VPS — la nouvelle
+migration s'applique seule au redémarrage du backend. Pour l'exécuter à la main :
+```bash
+docker exec taj_backend node -e "require('./dist/database/data-source').default.initialize().then(d=>d.runMigrations())"
+```
+
+> **Baseliner une base déjà créée par `synchronize`** (cas d'une base existante
+> avant la mise en place des migrations) : créer la table de suivi et y marquer
+> les migrations déjà « appliquées » pour ne pas rejouer les `CREATE TABLE` :
+> ```bash
+> docker exec -i taj_postgres psql -U "$DB_USERNAME" "$DB_NAME" <<'SQL'
+> CREATE TABLE IF NOT EXISTS migrations_history (
+>   id SERIAL PRIMARY KEY, "timestamp" bigint NOT NULL, name varchar NOT NULL);
+> INSERT INTO migrations_history ("timestamp", name) VALUES
+>   (1700000000000, 'InitialSchema1700000000000'),
+>   (1791639294742, 'BaselineSchema1791639294742');
+> SQL
+> ```
+
+## 7 bis. À prévoir ensuite (recommandé)
+
 - **Sauvegardes automatiques** (cron quotidien + copie hors-serveur).
 - **Monitoring / alertes** (Uptime Kuma, healthchecks).
 - **Swagger** : désactivé en production (NODE_ENV=production) — normal.
