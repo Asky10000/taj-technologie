@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2, Monitor } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
@@ -47,8 +48,8 @@ export default function LoginPage() {
       {/* Panneau gauche — branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <Monitor className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden">
+            <Image src="/logo-mark.png" alt="TAJ Technologie" width={40} height={40} className="w-full h-full object-contain p-1" priority />
           </div>
           <span className="text-sidebar-foreground font-bold text-xl tracking-tight">
             TAJ Technologie
@@ -83,8 +84,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md space-y-8">
           {/* Logo mobile */}
           <div className="flex lg:hidden items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Monitor className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-border">
+              <Image src="/logo-mark.png" alt="TAJ Technologie" width={40} height={40} className="w-full h-full object-contain p-1" />
             </div>
             <span className="font-bold text-xl">TAJ Technologie</span>
           </div>

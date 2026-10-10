@@ -42,7 +42,8 @@ export function SaleDocumentPrint(props: SaleDocumentPrintProps) {
       {/* En-tête émetteur + document */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #2563eb', paddingBottom: 16, marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#2563eb' }}>TAJ Technologie</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="TAJ Technologie" style={{ height: 56, marginBottom: 8 }} />
           <div style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>
             ERP / CRM — Solutions informatiques<br />
             Abidjan, Côte d'Ivoire<br />
