@@ -33,6 +33,8 @@ function lineHT(l: SaleLine): number {
 export function SaleDocumentPrint(props: SaleDocumentPrintProps) {
   const { docType, number, statusLabel, customerName, meta, lines, totalHT, totalTTC, notes, payment } = props;
   const totalTVA = Math.round(Number(totalTTC) - Number(totalHT));
+  const grossHT = Math.round(lines.reduce((s, l) => s + Number(l.quantity) * Number(l.unitPrice), 0));
+  const remise = Math.max(0, grossHT - Number(totalHT));
 
   return (
     <div
@@ -108,7 +110,15 @@ export function SaleDocumentPrint(props: SaleDocumentPrintProps) {
       {/* Totaux */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
         <div style={{ width: 260 }}>
-          <div style={totalRow}><span style={{ color: '#6b7280' }}>Total HT</span><span style={{ fontWeight: 600 }}>{formatCurrency(Number(totalHT))}</span></div>
+          {remise > 0 ? (
+            <>
+              <div style={totalRow}><span style={{ color: '#6b7280' }}>Sous-total HT</span><span style={{ fontWeight: 600 }}>{formatCurrency(grossHT)}</span></div>
+              <div style={totalRow}><span style={{ color: '#6b7280' }}>Remise</span><span style={{ fontWeight: 600, color: '#dc2626' }}>−{formatCurrency(remise)}</span></div>
+              <div style={totalRow}><span style={{ color: '#6b7280' }}>Total HT net</span><span style={{ fontWeight: 600 }}>{formatCurrency(Number(totalHT))}</span></div>
+            </>
+          ) : (
+            <div style={totalRow}><span style={{ color: '#6b7280' }}>Total HT</span><span style={{ fontWeight: 600 }}>{formatCurrency(Number(totalHT))}</span></div>
+          )}
           <div style={totalRow}><span style={{ color: '#6b7280' }}>TVA</span><span style={{ fontWeight: 600 }}>{formatCurrency(totalTVA)}</span></div>
           <div style={{ ...totalRow, borderTop: '2px solid #111827', marginTop: 4, paddingTop: 8, fontSize: 15, fontWeight: 700 }}>
             <span>Total TTC</span><span style={{ color: '#2563eb' }}>{formatCurrency(Number(totalTTC))}</span>

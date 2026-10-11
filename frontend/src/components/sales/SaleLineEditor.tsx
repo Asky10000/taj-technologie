@@ -257,6 +257,8 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
 
   const totalHT  = lines.reduce((s, l) => s + calcLine(l).ht,  0);
   const totalTTC = lines.reduce((s, l) => s + calcLine(l).ttc, 0);
+  const grossHT  = Math.round(lines.reduce((s, l) => s + Number(l.quantity) * Number(l.unitPrice), 0));
+  const remise   = Math.max(0, grossHT - totalHT);
 
   const inp = (cls?: string) =>
     cn('h-8 px-2 rounded border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring', cls);
@@ -352,10 +354,27 @@ export function SaleLineEditor({ lines, onChange }: SaleLineEditorProps) {
       {/* ── Totaux ──────────────────────────────────────────────── */}
       {lines.length > 0 && (
         <div className="border-t border-border pt-3 mt-3 flex flex-col items-end gap-1 text-sm">
-          <div className="flex gap-8">
-            <span className="text-muted-foreground">Total HT</span>
-            <span className="font-medium w-36 text-right">{formatCurrency(totalHT)}</span>
-          </div>
+          {remise > 0 ? (
+            <>
+              <div className="flex gap-8">
+                <span className="text-muted-foreground">Sous-total HT</span>
+                <span className="font-medium w-36 text-right">{formatCurrency(grossHT)}</span>
+              </div>
+              <div className="flex gap-8">
+                <span className="text-muted-foreground">Remise</span>
+                <span className="font-medium w-36 text-right text-red-600">−{formatCurrency(remise)}</span>
+              </div>
+              <div className="flex gap-8">
+                <span className="text-muted-foreground">Total HT net</span>
+                <span className="font-medium w-36 text-right">{formatCurrency(totalHT)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex gap-8">
+              <span className="text-muted-foreground">Total HT</span>
+              <span className="font-medium w-36 text-right">{formatCurrency(totalHT)}</span>
+            </div>
+          )}
           <div className="flex gap-8">
             <span className="text-muted-foreground">TVA</span>
             <span className="font-medium w-36 text-right">{formatCurrency(totalTTC - totalHT)}</span>

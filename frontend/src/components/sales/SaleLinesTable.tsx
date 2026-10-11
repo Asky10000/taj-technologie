@@ -20,6 +20,8 @@ function lineHT(l: SaleLine): number {
 
 export function SaleLinesTable({ lines, totalHT, totalTTC }: SaleLinesTableProps) {
   const totalTVA = Math.round(Number(totalTTC) - Number(totalHT));
+  const grossHT = Math.round(lines.reduce((s, l) => s + Number(l.quantity) * Number(l.unitPrice), 0));
+  const remise = Math.max(0, grossHT - Number(totalHT));
 
   return (
     <div className="bg-card border rounded-xl overflow-hidden">
@@ -69,10 +71,27 @@ export function SaleLinesTable({ lines, totalHT, totalTTC }: SaleLinesTableProps
 
       {/* Totaux */}
       <div className="border-t border-border px-5 py-4 flex flex-col items-end gap-1 text-sm bg-muted/20">
-        <div className="flex gap-8">
-          <span className="text-muted-foreground">Total HT</span>
-          <span className="font-medium w-40 text-right tabular-nums">{formatCurrency(Number(totalHT))}</span>
-        </div>
+        {remise > 0 ? (
+          <>
+            <div className="flex gap-8">
+              <span className="text-muted-foreground">Sous-total HT</span>
+              <span className="font-medium w-40 text-right tabular-nums">{formatCurrency(grossHT)}</span>
+            </div>
+            <div className="flex gap-8">
+              <span className="text-muted-foreground">Remise</span>
+              <span className="font-medium w-40 text-right tabular-nums text-red-600">−{formatCurrency(remise)}</span>
+            </div>
+            <div className="flex gap-8">
+              <span className="text-muted-foreground">Total HT net</span>
+              <span className="font-medium w-40 text-right tabular-nums">{formatCurrency(Number(totalHT))}</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex gap-8">
+            <span className="text-muted-foreground">Total HT</span>
+            <span className="font-medium w-40 text-right tabular-nums">{formatCurrency(Number(totalHT))}</span>
+          </div>
+        )}
         <div className="flex gap-8">
           <span className="text-muted-foreground">TVA</span>
           <span className="font-medium w-40 text-right tabular-nums">{formatCurrency(totalTVA)}</span>
