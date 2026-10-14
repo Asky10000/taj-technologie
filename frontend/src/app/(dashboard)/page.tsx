@@ -1,14 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Banknote, Users, Ticket, FolderKanban, Package,
-  AlertTriangle, Truck, TrendingUp, RefreshCw,
+  Banknote, Building2, FileText, Package, Warehouse, Truck,
+  Ticket, FolderKanban, BarChart3, ArrowUpRight,
+  AlertTriangle, TrendingUp, RefreshCw,
 } from 'lucide-react';
 import { KpiCard }      from '@/components/dashboard/KpiCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import api from '@/lib/api';
-import { formatCurrency, formatNumber, formatPercent } from '@/lib/utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 import type { DashboardData, SalesReportData, ApiResponse } from '@/types/api.types';
 import { cn } from '@/lib/utils';
 
@@ -65,8 +67,23 @@ export default function DashboardPage() {
     );
   }
 
+  // Tuiles de modules (style « néon sombre ») avec un chiffre clé + alerte.
+  const tiles: {
+    href: string; label: string; metric: string;
+    icon: React.ComponentType<{ className?: string }>; alert?: boolean;
+  }[] = [
+    { href: '/crm',        label: 'CRM',          metric: `${formatNumber(kpi.crm.totalCustomers)} clients`,        icon: Building2 },
+    { href: '/sales',      label: 'Ventes',       metric: `${formatCurrency(kpi.sales.monthRevenue)} ce mois`,      icon: FileText },
+    { href: '/products',   label: 'Produits',     metric: 'Catalogue',                                              icon: Package },
+    { href: '/inventory',  label: 'Inventaire',   metric: formatCurrency(kpi.inventory.totalStockValue),            icon: Warehouse, alert: kpi.inventory.outOfStock > 0 },
+    { href: '/suppliers',  label: 'Fournisseurs', metric: `${kpi.purchases.pendingOrders} cmd. en attente`,         icon: Truck },
+    { href: '/tickets',    label: 'Tickets',      metric: `${kpi.tickets.open} ouverts`,                            icon: Ticket, alert: kpi.tickets.critical > 0 },
+    { href: '/projects',   label: 'Projets',      metric: `${kpi.projects.active} actifs`,                          icon: FolderKanban, alert: kpi.projects.overBudget > 0 },
+    { href: '/reports',    label: 'Rapports',     metric: 'Analyses',                                               icon: BarChart3 },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
@@ -91,7 +108,28 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Grille KPIs — ligne 1 : Ventes */}
+      {/* Grille de tuiles — accès rapide aux modules */}
+      <div className="mx-auto max-w-5xl grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {tiles.map((t) => (
+          <Link
+            key={t.href}
+            href={t.href}
+            className="group relative rounded-2xl p-5 bg-[#0f172a] border border-[#1e293b] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#38bdf8] hover:shadow-[0_16px_34px_-12px_rgba(56,189,248,0.5)]"
+          >
+            {t.alert && (
+              <span className="absolute top-3.5 right-3.5 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.6)]" />
+            )}
+            <div className="w-11 h-11 rounded-xl bg-[#0b2540] text-[#38bdf8] flex items-center justify-center mb-3 transition-colors group-hover:bg-[#0e3358]">
+              <t.icon className="w-5 h-5" />
+            </div>
+            <div className="text-slate-100 font-semibold">{t.label}</div>
+            <div className="text-xs text-slate-400 mt-0.5">{t.metric}</div>
+            <ArrowUpRight className="w-4 h-4 text-slate-600 absolute bottom-4 right-4 transition-all group-hover:text-[#38bdf8] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+        ))}
+      </div>
+
+      {/* Indicateurs clés — Ventes & Facturation */}
       <section>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Ventes & Facturation
@@ -126,139 +164,25 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Graphique CA + KPIs CRM */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Graphique */}
-        <div className="xl:col-span-2 bg-card border rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">Évolution du chiffre d'affaires</h3>
-              <p className="text-xs text-muted-foreground">Année en cours — par mois</p>
-            </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 bg-primary rounded-full inline-block" />
-                HT
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 bg-emerald-600 rounded-full inline-block" />
-                TTC
-              </span>
-            </div>
+      {/* Évolution du chiffre d'affaires */}
+      <div className="bg-card border rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Évolution du chiffre d'affaires</h3>
+            <p className="text-xs text-muted-foreground">Année en cours — par mois</p>
           </div>
-          <RevenueChart data={timeline} />
-        </div>
-
-        {/* CRM */}
-        <div className="bg-card border rounded-xl p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">CRM</h3>
-          <div className="space-y-3">
-            {[
-              { label: 'Clients actifs',          value: formatNumber(kpi.crm.totalCustomers) },
-              { label: 'Nouveaux ce mois',        value: `+${kpi.crm.newCustomersThisMonth}`, color: 'text-emerald-600' },
-              { label: 'Prospects totaux',        value: formatNumber(kpi.crm.totalProspects) },
-              { label: 'Prospects actifs',        value: formatNumber(kpi.crm.activeProspects), color: 'text-primary' },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">{item.label}</span>
-                <span className={cn('text-sm font-semibold', item.color ?? 'text-foreground')}>
-                  {item.value}
-                </span>
-              </div>
-            ))}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-primary rounded-full inline-block" />
+              HT
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 bg-emerald-600 rounded-full inline-block" />
+              TTC
+            </span>
           </div>
         </div>
-      </div>
-
-      {/* Ligne 3 — Tickets, Projets, Stock, Achats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Tickets */}
-        <div className="bg-card border rounded-xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Ticket className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-foreground">Tickets SAV</h3>
-          </div>
-          <div className="space-y-2">
-            {[
-              { label: 'Ouverts',       value: kpi.tickets.open,       color: 'bg-yellow-400' },
-              { label: 'En cours',      value: kpi.tickets.inProgress,  color: 'bg-blue-500' },
-              { label: 'Critiques',     value: kpi.tickets.critical,    color: 'bg-destructive', alert: kpi.tickets.critical > 0 },
-              { label: 'SLA dépassé',   value: kpi.tickets.slaBreached, color: 'bg-orange-500',  alert: kpi.tickets.slaBreached > 0 },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <span className={cn('w-2 h-2 rounded-full flex-shrink-0', item.color)} />
-                <span className="text-xs text-muted-foreground flex-1">{item.label}</span>
-                <span className={cn('text-xs font-bold', item.alert && item.value > 0 ? 'text-destructive' : 'text-foreground')}>
-                  {item.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Projets */}
-        <div className="bg-card border rounded-xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <FolderKanban className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-foreground">Projets</h3>
-          </div>
-          <div className="space-y-2">
-            {[
-              { label: 'Projets actifs',     value: kpi.projects.active },
-              { label: 'En dépassement',     value: kpi.projects.overBudget, alert: kpi.projects.overBudget > 0 },
-              { label: 'Budget total',       value: formatCurrency(kpi.projects.totalBudget) },
-              { label: 'Coût réel cumulé',   value: formatCurrency(kpi.projects.totalActualCost) },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{item.label}</span>
-                <span className={cn('text-xs font-bold', (item as any).alert && (item as any).value > 0 ? 'text-destructive' : 'text-foreground')}>
-                  {item.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Inventaire */}
-        <div className="bg-card border rounded-xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-foreground">Inventaire</h3>
-          </div>
-          <div className="space-y-2">
-            {[
-              { label: 'Valeur stock',       value: formatCurrency(kpi.inventory.totalStockValue) },
-              { label: 'Rupture de stock',   value: kpi.inventory.outOfStock,  alert: kpi.inventory.outOfStock > 0 },
-              { label: 'Stock bas',          value: kpi.inventory.lowStock,    alert: kpi.inventory.lowStock > 0 },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{item.label}</span>
-                <span className={cn('text-xs font-bold', (item as any).alert && (item as any).value > 0 ? 'text-destructive' : 'text-foreground')}>
-                  {item.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Achats */}
-        <div className="bg-card border rounded-xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-foreground">Achats fournisseurs</h3>
-          </div>
-          <div className="space-y-2">
-            {[
-              { label: 'Commandes en attente', value: kpi.purchases.pendingOrders },
-              { label: 'Montant en attente',   value: formatCurrency(kpi.purchases.pendingOrdersAmount) },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{item.label}</span>
-                <span className="text-xs font-bold text-foreground">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <RevenueChart data={timeline} />
       </div>
     </div>
   );
