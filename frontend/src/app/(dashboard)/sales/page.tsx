@@ -99,10 +99,13 @@ export default function QuotesPage() {
         ) : (
           <>
             {/* Header — desktop uniquement */}
-            <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-              {['RÉFÉRENCE','CLIENT','TOTAL TTC','VALIDITÉ','STATUT','ACTIONS'].map((h) => (
-                <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
-              ))}
+            <div className="hidden sm:grid grid-cols-[auto_minmax(0,1fr)_150px_120px_130px_minmax(150px,auto)] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
+              <span>RÉFÉRENCE</span>
+              <span>CLIENT</span>
+              <span className="text-right">TOTAL TTC</span>
+              <span className="text-right">VALIDITÉ</span>
+              <span>STATUT</span>
+              <span>ACTIONS</span>
             </div>
             <div className="divide-y divide-border">
               {data.items.map((quote) => {
@@ -140,14 +143,14 @@ export default function QuotesPage() {
                     </div>
 
                     {/* Ligne desktop */}
-                    <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                    <div className="hidden sm:grid grid-cols-[auto_minmax(0,1fr)_150px_120px_130px_minmax(150px,auto)] px-5 py-3.5 items-center hover:bg-accent/30 transition-colors divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
                       <Link href={`/sales/quotes/${quote.id}`} className="text-sm font-medium text-primary hover:underline">{quote.number}</Link>
                       <div>
                         <p className="text-sm text-foreground">{quote.customer?.name ?? '—'}</p>
                         <p className="text-xs text-muted-foreground">{formatRelativeTime(quote.createdAt)}</p>
                       </div>
-                      <span className="text-sm font-semibold">{formatCurrency(quote.totalTTC)}</span>
-                      <span className="text-xs text-muted-foreground">{quote.validUntil ? formatDate(quote.validUntil) : '—'}</span>
+                      <span className="text-sm font-semibold text-right">{formatCurrency(quote.totalTTC)}</span>
+                      <span className="text-xs text-muted-foreground text-right">{quote.validUntil ? formatDate(quote.validUntil) : '—'}</span>
                       <Badge variant={sc.variant}>{sc.label}</Badge>
                       <div className="flex items-center gap-1.5">
                         {transitions.includes('SENT') && (

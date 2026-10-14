@@ -51,15 +51,17 @@ export default function CustomerAccountsPage() {
           <EmptyState icon={Users} title="Aucun compte client" description="Les comptes apparaissent dès qu'un client possède une facture." />
         ) : (
           <>
-            <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-              {['CLIENT', 'FACTURES', 'TOTAL FACTURÉ', 'ENCAISSÉ', 'SOLDE DÛ'].map((h) => (
-                <span key={h} className="text-xs font-semibold text-muted-foreground last:text-right">{h}</span>
-              ))}
+            <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_90px_150px_150px_150px] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
+              <span>CLIENT</span>
+              <span className="text-center">FACTURES</span>
+              <span className="text-right">TOTAL FACTURÉ</span>
+              <span className="text-right">ENCAISSÉ</span>
+              <span className="text-right">SOLDE DÛ</span>
             </div>
             <div className="divide-y divide-border">
               {filtered.map((a) => (
                 <Link key={a.customerId} href={`/sales/accounts/${a.customerId}`}
-                  className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto_auto_auto] gap-2 sm:gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                  className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_90px_150px_150px_150px] gap-2 sm:gap-0 sm:divide-x sm:divide-border px-5 py-3.5 items-center hover:bg-accent/30 transition-colors sm:[&>*]:px-3 sm:[&>*:first-child]:pl-0">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate flex items-center gap-2">
                       {a.name}

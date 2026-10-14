@@ -126,30 +126,35 @@ export default function PurchaseOrdersPage() {
           <EmptyState icon={ShoppingBag} title="Aucun bon de commande" description="Créez un bon de commande pour commencer." />
         ) : (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-              {['RÉFÉRENCE','FOURNISSEUR','TOTAL TTC','PAYÉ','RESTE','LIVRAISON','STATUT / ACTIONS'].map((h) => (
-                <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
-              ))}
+            <div className="grid grid-cols-[auto_minmax(0,1fr)_150px_130px_130px_120px_minmax(170px,auto)] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
+              <span>RÉFÉRENCE</span>
+              <span>FOURNISSEUR</span>
+              <span className="text-right">TOTAL TTC</span>
+              <span className="text-right">PAYÉ</span>
+              <span className="text-right">RESTE</span>
+              <span className="text-right">LIVRAISON</span>
+              <span>STATUT / ACTIONS</span>
             </div>
             <div className="divide-y divide-border">
               {data.items.map((order) => {
                 const sc         = STATUS_CONFIG[order.status];
                 const transition = STATUS_NEXT[order.status];
                 const canReceive = ['CONFIRMED', 'PARTIALLY_RECEIVED'].includes(order.status);
-                const canPay     = ['CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED'].includes(order.status) && order.remainingAmount > 0;
+                const remaining  = Number(order.totalTTC) - Number(order.paidAmount ?? 0);
+                const canPay     = ['CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED'].includes(order.status) && remaining > 0;
                 return (
-                  <div key={order.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                  <div key={order.id} className="grid grid-cols-[auto_minmax(0,1fr)_150px_130px_130px_120px_minmax(170px,auto)] px-5 py-3.5 items-center hover:bg-accent/30 transition-colors divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
                     <span className="text-sm font-medium text-primary font-mono">{order.code}</span>
                     <div>
                       <p className="text-sm text-foreground">{order.supplier?.name ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(order.createdAt)}</p>
                     </div>
-                    <span className="text-sm font-semibold">{formatCurrency(order.totalTTC)}</span>
-                    <span className="text-sm text-emerald-600">{formatCurrency(order.paidAmount)}</span>
-                    <span className={cn('text-sm font-medium', order.remainingAmount > 0 ? 'text-foreground' : 'text-emerald-600')}>
-                      {formatCurrency(order.remainingAmount)}
+                    <span className="text-sm font-semibold text-right">{formatCurrency(order.totalTTC)}</span>
+                    <span className="text-sm text-emerald-600 text-right">{formatCurrency(order.paidAmount)}</span>
+                    <span className={cn('text-sm font-medium text-right', remaining > 0 ? 'text-foreground' : 'text-emerald-600')}>
+                      {formatCurrency(remaining)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground text-right">
                       {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '—'}
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -169,7 +174,7 @@ export default function PurchaseOrdersPage() {
                         </button>
                       )}
                       {canPay && (
-                        <button onClick={() => { setPayModal(order.id); setPayAmount(order.remainingAmount); setPayRef(''); }}
+                        <button onClick={() => { setPayModal(order.id); setPayAmount(remaining); setPayRef(''); }}
                           className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent transition-colors text-muted-foreground"
                           title="Enregistrer un paiement">
                           <CreditCard className="w-3.5 h-3.5" />
