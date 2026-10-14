@@ -31,7 +31,7 @@ export default function DashboardLayout({
       <main
         className={cn(
           'flex-1 min-w-0 overflow-auto',
-          isHome ? '' : 'p-4 md:p-6 bg-background print:p-0 print:overflow-visible',
+          isHome ? '' : 'p-4 md:p-6 pb-28 bg-background print:p-0 print:overflow-visible',
         )}
       >
         {children}

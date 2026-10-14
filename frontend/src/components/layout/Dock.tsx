@@ -17,8 +17,8 @@ export function Dock() {
   const items = MODULES.filter((m) => !m.roles || (role && m.roles.includes(role)));
 
   return (
-    <nav className="no-print bg-[#0a0f1e] border-t border-[#1e293b] px-3 py-2.5">
-      <div className="flex gap-2 justify-center flex-wrap">
+    <nav className="no-print fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-1.5rem)]">
+      <div className="flex gap-2 justify-center flex-wrap bg-[#0d1426]/85 backdrop-blur-md border border-[#27344d] rounded-[20px] px-3 py-2.5 shadow-[0_18px_44px_-12px_rgba(0,0,0,0.7)]">
         {items.map((m) => {
           const active = pathname === m.href || pathname.startsWith(`${m.href}/`);
           return (
