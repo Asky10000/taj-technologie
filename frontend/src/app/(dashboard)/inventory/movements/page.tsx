@@ -70,17 +70,21 @@ export default function MovementsPage() {
           <EmptyState icon={Activity} title="Aucun mouvement" description="Les mouvements de stock apparaîtront ici." />
         ) : (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-              {['TYPE','PRODUIT','QTÉ','AVANT','APRÈS','COÛT UNIT.','DATE'].map((h) => (
-                <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
-              ))}
+            <div className="grid grid-cols-[auto_minmax(0,1fr)_80px_80px_80px_130px_120px] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
+              <span>TYPE</span>
+              <span>PRODUIT</span>
+              <span className="text-right">QTÉ</span>
+              <span className="text-right">AVANT</span>
+              <span className="text-right">APRÈS</span>
+              <span className="text-right">COÛT UNIT.</span>
+              <span className="text-right">DATE</span>
             </div>
             <div className="divide-y divide-border">
               {data.items.map((mv) => {
                 const tc   = TYPE_CONFIG[mv.type];
                 const Icon = tc.icon;
                 return (
-                  <div key={mv.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-3 items-center hover:bg-accent/30 transition-colors">
+                  <div key={mv.id} className="grid grid-cols-[auto_minmax(0,1fr)_80px_80px_80px_130px_120px] px-5 py-3 items-center hover:bg-accent/30 transition-colors divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
                     <div className="flex items-center gap-1.5">
                       <Icon className={cn('w-4 h-4', tc.color)} />
                       <Badge variant={tc.variant}>{tc.label}</Badge>
@@ -99,12 +103,12 @@ export default function MovementsPage() {
                         )}
                       </div>
                     </div>
-                    <span className={cn('text-sm font-semibold tabular-nums', tc.color)}>
+                    <span className={cn('text-sm font-semibold tabular-nums text-right', tc.color)}>
                       {tc.sign}{mv.quantity}
                     </span>
-                    <span className="text-xs text-muted-foreground tabular-nums">{mv.quantityBefore}</span>
-                    <span className="text-xs font-medium tabular-nums">{mv.quantityAfter}</span>
-                    <span className="text-sm tabular-nums">
+                    <span className="text-xs text-muted-foreground tabular-nums text-right">{mv.quantityBefore}</span>
+                    <span className="text-xs font-medium tabular-nums text-right">{mv.quantityAfter}</span>
+                    <span className="text-sm tabular-nums text-right">
                       {mv.unitCost ? formatCurrency(mv.unitCost) : '—'}
                     </span>
                     <div className="text-right">

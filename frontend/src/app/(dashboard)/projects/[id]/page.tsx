@@ -326,14 +326,16 @@ export default function ProjectDetailPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-                  {['COLLABORATEUR','DATE','TÂCHE','HEURES','COÛT'].map((h) => (
-                    <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
-                  ))}
+                <div className="grid grid-cols-[minmax(0,1.3fr)_110px_minmax(0,1fr)_90px_140px] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
+                  <span>COLLABORATEUR</span>
+                  <span className="text-right">DATE</span>
+                  <span>TÂCHE</span>
+                  <span className="text-right">HEURES</span>
+                  <span className="text-right">COÛT</span>
                 </div>
                 <div className="divide-y divide-border">
                   {timeEntries.map((entry) => (
-                    <div key={entry.id} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 items-center">
+                    <div key={entry.id} className="grid grid-cols-[minmax(0,1.3fr)_110px_minmax(0,1fr)_90px_140px] px-5 py-3 items-center divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary flex-shrink-0">
                           {entry.user ? getInitials(entry.user.firstName, entry.user.lastName) : '?'}
@@ -342,12 +344,12 @@ export default function ProjectDetailPage() {
                           {entry.user ? `${entry.user.firstName} ${entry.user.lastName}` : '—'}
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">{formatDate(entry.entryDate)}</span>
-                      <span className="text-xs text-muted-foreground max-w-36 truncate">
+                      <span className="text-xs text-muted-foreground text-right">{formatDate(entry.entryDate)}</span>
+                      <span className="text-xs text-muted-foreground truncate">
                         {entry.task?.title ?? '—'}
                       </span>
-                      <span className="text-sm font-medium">{entry.hours} h</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm font-medium text-right">{entry.hours} h</span>
+                      <span className="text-sm text-muted-foreground text-right">
                         {entry.hourlyRate > 0 ? formatCurrency(Number(entry.hours) * Number(entry.hourlyRate)) : '—'}
                       </span>
                     </div>

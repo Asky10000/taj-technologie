@@ -15,11 +15,15 @@ export function formatCurrency(
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  })
+    .format(Number(amount) || 0)
+    // Remplace les espaces insécables (fines) par une espace normale et bien
+    // visible entre les milliers : « 3 511 000 F CFA ».
+    .replace(/[  ]/g, ' ');
 }
 
 export function formatNumber(value: number, locale = 'fr-FR'): string {
-  return new Intl.NumberFormat(locale).format(value);
+  return new Intl.NumberFormat(locale).format(Number(value) || 0).replace(/[  ]/g, ' ');
 }
 
 export function formatPercent(value: number, decimals = 1): string {

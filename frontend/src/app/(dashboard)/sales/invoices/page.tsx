@@ -75,7 +75,7 @@ export default function InvoicesPage() {
         ) : (
           <>
             {/* Header — desktop uniquement */}
-            <div className="hidden sm:grid grid-cols-[auto_1fr_150px_130px_130px_104px_140px] gap-4 px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground">
+            <div className="hidden sm:grid grid-cols-[auto_1fr_150px_130px_130px_104px_140px] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
               <span>RÉFÉRENCE</span>
               <span>CLIENT</span>
               <span className="text-right">TOTAL TTC</span>
@@ -125,7 +125,7 @@ export default function InvoicesPage() {
                     </div>
 
                     {/* Ligne desktop */}
-                    <div className={cn('hidden sm:grid grid-cols-[auto_1fr_150px_130px_130px_104px_140px] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors', isOverdue && 'bg-red-50/50 dark:bg-red-950/20')}>
+                    <div className={cn('hidden sm:grid grid-cols-[auto_1fr_150px_130px_130px_104px_140px] px-5 py-3.5 items-center hover:bg-accent/30 transition-colors divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0', isOverdue && 'bg-red-50/50 dark:bg-red-950/20')}>
                       <div className="flex items-center gap-2">
                         {isOverdue && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
                         <Link href={`/sales/invoices/${invoice.id}`} className="text-sm font-medium text-primary hover:underline">{invoice.number}</Link>

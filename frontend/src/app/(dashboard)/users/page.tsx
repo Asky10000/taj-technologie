@@ -116,10 +116,12 @@ export default function UsersPage() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-2.5 border-b bg-muted/30">
-              {['UTILISATEUR', 'EMAIL / DATE', 'RÔLE', 'STATUT', 'ACTIONS'].map((h) => (
-                <span key={h} className="text-xs font-semibold text-muted-foreground">{h}</span>
-              ))}
+            <div className="grid grid-cols-[auto_minmax(0,1fr)_140px_90px_minmax(120px,auto)] px-5 py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
+              <span>UTILISATEUR</span>
+              <span>EMAIL / DATE</span>
+              <span>RÔLE</span>
+              <span>STATUT</span>
+              <span>ACTIONS</span>
             </div>
             <div className="divide-y divide-border">
               {data.items.map((user) => {
@@ -128,7 +130,7 @@ export default function UsersPage() {
                 const manageable = canManage(user) && !isMe;
                 const active = user.status === 'ACTIVE';
                 return (
-                  <div key={user.id} className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-3.5 items-center hover:bg-accent/30 transition-colors">
+                  <div key={user.id} className="grid grid-cols-[auto_minmax(0,1fr)_140px_90px_minmax(120px,auto)] px-5 py-3.5 items-center hover:bg-accent/30 transition-colors divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
                     {/* Avatar */}
                     <div className={cn(
                       'w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0',
