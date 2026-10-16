@@ -312,7 +312,6 @@ export default function CustomerDetailPage() {
             {[
               { label: 'Voir les devis',    href: `/sales?customerId=${id}&tab=quotes` },
               { label: 'Voir les factures', href: `/sales?customerId=${id}&tab=invoices` },
-              { label: 'Voir les tickets',  href: `/tickets?customerId=${id}` },
             ].map((link) => (
               <Link
                 key={link.label}

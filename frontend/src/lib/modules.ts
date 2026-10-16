@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import {
   Building2, FileText, Package, Warehouse, Truck,
-  Ticket, Wrench, FolderKanban, BarChart3, Users,
+  Wrench, FolderKanban, BarChart3, Users,
 } from 'lucide-react';
 
 export interface ModuleItem {
@@ -18,7 +18,6 @@ export const MODULES: ModuleItem[] = [
   { label: 'Produits',     href: '/products',  icon: Package },
   { label: 'Inventaire',   href: '/inventory', icon: Warehouse },
   { label: 'Fournisseurs', href: '/suppliers', icon: Truck },
-  { label: 'Tickets',      href: '/tickets',   icon: Ticket },
   { label: 'Interventions', href: '/interventions', icon: Wrench },
   { label: 'Projets',      href: '/projects',  icon: FolderKanban },
   { label: 'Rapports',     href: '/reports',   icon: BarChart3, roles: ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'ACCOUNTANT'] },

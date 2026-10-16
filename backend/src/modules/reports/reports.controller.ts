@@ -57,15 +57,6 @@ export class ReportsController {
     return this.reportsService.getProjectsReport(query);
   }
 
-  @Get('tickets')
-  @Roles(Role.MANAGER)
-  @ApiOperation({
-    summary: 'Rapport tickets SAV — SLA, temps de résolution, satisfaction',
-  })
-  getTicketsReport(@Query() query: DateRangeDto) {
-    return this.reportsService.getTicketsReport(query);
-  }
-
   @Get('purchases')
   @Roles(Role.MANAGER)
   @ApiOperation({

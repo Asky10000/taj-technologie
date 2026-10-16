@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
   Building2, FileText, Package, Warehouse, Truck,
-  Ticket, Wrench, FolderKanban, BarChart3, ArrowUpRight,
+  Wrench, FolderKanban, BarChart3, ArrowUpRight,
   Cctv, Network, Cable, Router, Wifi,
   RefreshCw, AlertTriangle,
 } from 'lucide-react';
@@ -57,7 +57,6 @@ export default function HomePage() {
     { href: '/products',   label: 'Produits',     metric: 'Catalogue',                                        icon: Package },
     { href: '/inventory',  label: 'Inventaire',   metric: formatCurrency(kpi.inventory.totalStockValue),      icon: Warehouse, alert: kpi.inventory.outOfStock > 0 },
     { href: '/suppliers',  label: 'Fournisseurs', metric: `${kpi.purchases.pendingOrders} cmd. en attente`,   icon: Truck },
-    { href: '/tickets',    label: 'Tickets',      metric: `${kpi.tickets.open} ouverts`,                      icon: Ticket, alert: kpi.tickets.critical > 0 },
     { href: '/interventions', label: 'Interventions', metric: 'Visites terrain',                              icon: Wrench },
     { href: '/projects',   label: 'Projets',      metric: `${kpi.projects.active} actifs`,                    icon: FolderKanban, alert: kpi.projects.overBudget > 0 },
     { href: '/reports',    label: 'Rapports',     metric: 'Analyses',                                         icon: BarChart3 },
