@@ -6,12 +6,13 @@ import Link from 'next/link';
 import {
   ArrowLeft, Edit, Trash2, Building2, Phone, Mail,
   MapPin, CreditCard, MessageSquare, Plus, Calendar,
-  User, Loader2,
+  User, Loader2, Wrench,
 } from 'lucide-react';
 import {
   useCustomer, useCustomerContacts, useCustomerInteractions,
   useUpdateCustomer, useDeleteCustomer, useCreateContact, useCreateInteraction,
 } from '@/hooks/useCrm';
+import { useInterventions } from '@/hooks/useInterventions';
 import { CustomerStatusBadge } from '@/components/ui/Badge';
 import { CustomerModal }       from '@/components/crm/CustomerModal';
 import { Modal }               from '@/components/ui/Modal';
@@ -55,6 +56,8 @@ export default function CustomerDetailPage() {
   const { data: customer, isLoading }   = useCustomer(id);
   const { data: contacts = [] }         = useCustomerContacts(id);
   const { data: interactions = [] }     = useCustomerInteractions(id);
+  const { data: interventionsPage }     = useInterventions({ customerId: id, limit: 5 });
+  const interventions = interventionsPage?.items ?? [];
   const deleteMutation                  = useDeleteCustomer();
   const createContact                   = useCreateContact(id);
   const createInteraction               = useCreateInteraction(id);
@@ -267,6 +270,37 @@ export default function CustomerDetailPage() {
                       )}
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Interventions */}
+          <div className="bg-card border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-muted-foreground" /> Interventions ({interventions.length})
+              </h3>
+              <Link href={`/interventions?new=1&customer=${id}`}
+                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors">
+                <Plus className="w-3 h-3" /> Nouvelle
+              </Link>
+            </div>
+            {interventions.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">Aucune intervention</p>
+            ) : (
+              <div className="space-y-2">
+                {interventions.map((iv) => (
+                  <Link key={iv.id} href={`/interventions/${iv.id}`}
+                    className="flex items-center justify-between gap-2 py-1.5 border-b border-border last:border-0">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">{iv.subject || iv.number}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(iv.visitDate)}</p>
+                    </div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${iv.status === 'COMPLETED' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'}`}>
+                      {iv.status === 'COMPLETED' ? 'Terminé' : 'Brouillon'}
+                    </span>
+                  </Link>
                 ))}
               </div>
             )}
