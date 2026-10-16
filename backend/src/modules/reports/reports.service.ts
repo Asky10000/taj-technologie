@@ -62,12 +62,6 @@ export class ReportsService {
       totalProspects: number;
       activeProspects: number;
     };
-    tickets: {
-      open: number;
-      inProgress: number;
-      critical: number;
-      slaBreached: number;
-    };
     projects: {
       active: number;
       overBudget: number;
@@ -96,7 +90,6 @@ export class ReportsService {
       customersRow,
       newCustomersRow,
       prospectsRow,
-      ticketsRow,
       projectsRow,
       stockRow,
       purchasesRow,
@@ -157,19 +150,6 @@ export class ReportsService {
         FROM prospects WHERE deleted_at IS NULL
       `),
 
-      // Tickets ouverts / critiques / SLA breach
-      this.dataSource.query<{ open: string; in_progress: string; critical: string; sla_breached: string }[]>(`
-        SELECT
-          COUNT(*) FILTER (WHERE status = 'OPEN')        AS open,
-          COUNT(*) FILTER (WHERE status = 'IN_PROGRESS') AS in_progress,
-          COUNT(*) FILTER (WHERE priority = 'CRITICAL' AND status NOT IN ('RESOLVED','CLOSED')) AS critical,
-          COUNT(*) FILTER (
-            WHERE status NOT IN ('RESOLVED','CLOSED')
-              AND sla_resolution_due_at < NOW()
-          ) AS sla_breached
-        FROM tickets WHERE deleted_at IS NULL
-      `),
-
       // Projets actifs / dépassement budget
       this.dataSource.query<{ active: string; over_budget: string; total_budget: string; total_cost: string }[]>(`
         SELECT
@@ -227,12 +207,6 @@ export class ReportsService {
         newCustomersThisMonth: parseInt(newCustomersRow[0]?.count ?? '0', 10),
         totalProspects:       parseInt(prospectsRow[0]?.total ?? '0', 10),
         activeProspects:      parseInt(prospectsRow[0]?.active ?? '0', 10),
-      },
-      tickets: {
-        open:       parseInt(ticketsRow[0]?.open ?? '0', 10),
-        inProgress: parseInt(ticketsRow[0]?.in_progress ?? '0', 10),
-        critical:   parseInt(ticketsRow[0]?.critical ?? '0', 10),
-        slaBreached: parseInt(ticketsRow[0]?.sla_breached ?? '0', 10),
       },
       projects: {
         active:        parseInt(projectsRow[0]?.active ?? '0', 10),
@@ -717,99 +691,6 @@ export class ReportsService {
         totalHours:   parseFloat(r.hours),
         billableHours: parseFloat(r.billable),
         totalCost:    parseFloat(r.cost),
-      })),
-    };
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // 6. RAPPORT TICKETS (SAV)
-  // ─────────────────────────────────────────────────────────────
-
-  async getTicketsReport(query: DateRangeDto): Promise<{
-    summary: {
-      total: number;
-      resolved: number;
-      avgResolutionHours: number;
-      slaResponseRate: number;
-      slaResolutionRate: number;
-      avgSatisfactionScore: number;
-    };
-    byStatus: { status: string; count: number }[];
-    byPriority: { priority: string; count: number; avgResolutionHours: number }[];
-    timeline: { period: string; opened: number; resolved: number }[];
-  }> {
-    const trunc = this.groupByTrunc(query.groupBy);
-    const dateClause = (alias: string) => {
-      const parts: string[] = [];
-      if (query.from) parts.push(`${alias}.created_at >= '${query.from}'`);
-      if (query.to)   parts.push(`${alias}.created_at <= '${query.to}T23:59:59.999Z'`);
-      return parts.length ? 'AND ' + parts.join(' AND ') : '';
-    };
-
-    const [summary, byStatus, byPriority, timeline] = await Promise.all([
-      this.dataSource.query<{
-        total: string; resolved: string; avg_res: string;
-        sla_response: string; sla_resolution: string; avg_score: string;
-      }[]>(`
-        SELECT
-          COUNT(*) AS total,
-          COUNT(*) FILTER (WHERE status IN ('RESOLVED','CLOSED')) AS resolved,
-          AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600)
-            FILTER (WHERE resolved_at IS NOT NULL) AS avg_res,
-          (COUNT(*) FILTER (WHERE sla_response_met = true)::float
-            / NULLIF(COUNT(*) FILTER (WHERE first_response_at IS NOT NULL), 0)) * 100 AS sla_response,
-          (COUNT(*) FILTER (WHERE sla_resolution_met = true)::float
-            / NULLIF(COUNT(*) FILTER (WHERE status IN ('RESOLVED','CLOSED')), 0)) * 100 AS sla_resolution,
-          AVG(satisfaction_score) FILTER (WHERE satisfaction_score IS NOT NULL) AS avg_score
-        FROM tickets
-        WHERE deleted_at IS NULL ${dateClause('tickets')}
-      `),
-
-      this.dataSource.query<{ status: string; cnt: string }[]>(`
-        SELECT status, COUNT(*) AS cnt
-        FROM tickets WHERE deleted_at IS NULL ${dateClause('tickets')}
-        GROUP BY status ORDER BY cnt DESC
-      `),
-
-      this.dataSource.query<{ priority: string; cnt: string; avg_res: string }[]>(`
-        SELECT
-          priority,
-          COUNT(*) AS cnt,
-          AVG(EXTRACT(EPOCH FROM (resolved_at - created_at))/3600)
-            FILTER (WHERE resolved_at IS NOT NULL) AS avg_res
-        FROM tickets WHERE deleted_at IS NULL ${dateClause('tickets')}
-        GROUP BY priority ORDER BY cnt DESC
-      `),
-
-      this.dataSource.query<{ period: string; opened: string; resolved: string }[]>(`
-        SELECT
-          DATE_TRUNC('${trunc}', created_at)::date::text AS period,
-          COUNT(*) AS opened,
-          COUNT(*) FILTER (WHERE status IN ('RESOLVED','CLOSED')) AS resolved
-        FROM tickets WHERE deleted_at IS NULL ${dateClause('tickets')}
-        GROUP BY 1 ORDER BY 1
-      `),
-    ]);
-
-    return {
-      summary: {
-        total:               parseInt(summary[0]?.total ?? '0', 10),
-        resolved:            parseInt(summary[0]?.resolved ?? '0', 10),
-        avgResolutionHours:  Math.round(parseFloat(summary[0]?.avg_res ?? '0') * 10) / 10,
-        slaResponseRate:     Math.round(parseFloat(summary[0]?.sla_response ?? '0') * 10) / 10,
-        slaResolutionRate:   Math.round(parseFloat(summary[0]?.sla_resolution ?? '0') * 10) / 10,
-        avgSatisfactionScore: Math.round(parseFloat(summary[0]?.avg_score ?? '0') * 10) / 10,
-      },
-      byStatus: byStatus.map((r) => ({ status: r.status, count: parseInt(r.cnt, 10) })),
-      byPriority: byPriority.map((r) => ({
-        priority:            r.priority,
-        count:               parseInt(r.cnt, 10),
-        avgResolutionHours:  Math.round(parseFloat(r.avg_res ?? '0') * 10) / 10,
-      })),
-      timeline: timeline.map((r) => ({
-        period:   r.period,
-        opened:   parseInt(r.opened, 10),
-        resolved: parseInt(r.resolved, 10),
       })),
     };
   }

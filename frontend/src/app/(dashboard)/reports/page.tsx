@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  Banknote, Users, Package, AlertTriangle, Ticket,
+  Banknote, Users, Package, AlertTriangle,
   FolderKanban, Truck, TrendingUp, Loader2,
 } from 'lucide-react';
 import { useDashboardReport } from '@/hooks/useReports';
@@ -125,22 +125,6 @@ export default function ReportsOverviewPage() {
       {/* ── Opérations ──────────────────────────────────────── */}
       <Section title="Opérations">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard
-            label="Tickets ouverts"
-            value={data.tickets.open}
-            sub={`En cours : ${data.tickets.inProgress}`}
-            icon={Ticket}
-            color="text-blue-600"
-            bg="bg-blue-50 dark:bg-blue-900/20"
-          />
-          <KpiCard
-            label="Tickets critiques"
-            value={data.tickets.critical}
-            sub={`${data.tickets.slaBreached} SLA dépassés`}
-            icon={AlertTriangle}
-            color="text-orange-600"
-            bg="bg-orange-50 dark:bg-orange-900/20"
-          />
           <KpiCard
             label="Projets actifs"
             value={data.projects.active}

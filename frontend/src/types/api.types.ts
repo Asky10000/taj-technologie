@@ -74,12 +74,6 @@ export interface DashboardData {
     totalProspects: number;
     activeProspects: number;
   };
-  tickets: {
-    open: number;
-    inProgress: number;
-    critical: number;
-    slaBreached: number;
-  };
   projects: {
     active: number;
     overBudget: number;

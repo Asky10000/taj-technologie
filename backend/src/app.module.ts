@@ -17,7 +17,6 @@ import { CrmModule } from './modules/crm/crm.module';
 import { ProductsModule } from './modules/products/products.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { SalesModule } from './modules/sales/sales.module';
-import { TicketsModule } from './modules/tickets/tickets.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ReportsModule } from './modules/reports/reports.module';
@@ -48,7 +47,6 @@ import { InterventionsModule } from './modules/interventions/interventions.modul
     ProductsModule,
     InventoryModule,
     SalesModule,
-    TicketsModule,
     ProjectsModule,
     SuppliersModule,
     ReportsModule,

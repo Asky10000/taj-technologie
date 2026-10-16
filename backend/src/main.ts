@@ -77,7 +77,6 @@ async function bootstrap() {
       .addTag('Inventory', 'Inventory management')
       .addTag('Sales', 'Sales management')
       .addTag('Suppliers', 'Supplier management')
-      .addTag('Tickets', 'Support ticket management')
       .addTag('Projects', 'Project management')
       .addTag('Billing', 'Billing management')
       .addTag('Reports', 'Reports and analytics')
