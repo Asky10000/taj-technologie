@@ -240,8 +240,12 @@ export class SalesController {
   @Post('invoices/:id/payment')
   @Roles(Role.MANAGER, Role.ADMIN, Role.SUPER_ADMIN, Role.ACCOUNTANT)
   @ApiOperation({ summary: 'Enregistrer un paiement sur une facture' })
-  recordPayment(@Param('id', ParseUUIDPipe) id: string, @Body() dto: RecordPaymentDto) {
-    return this.invoicesService.recordPayment(id, dto);
+  recordPayment(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RecordPaymentDto,
+    @CurrentUser() u: AuthenticatedUser,
+  ) {
+    return this.invoicesService.recordPayment(id, dto, u.id);
   }
 
   @Post('invoices/:id/cancel')

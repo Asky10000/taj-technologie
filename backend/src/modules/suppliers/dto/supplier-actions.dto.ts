@@ -7,6 +7,7 @@ import {
 import { Type } from 'class-transformer';
 import { CreateSupplierDto } from './create-supplier.dto';
 import { PurchaseOrderStatus } from '../enums/supplier.enums';
+import { PaymentMethod } from '../../sales/enums/sales.enums';
 
 export class UpdateSupplierDto extends PartialType(CreateSupplierDto) {}
 
@@ -167,4 +168,20 @@ export class RecordPaymentDto {
   @IsString()
   @MaxLength(200)
   reference?: string;
+
+  @ApiPropertyOptional({ enum: PaymentMethod })
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  paidAt?: string;
+
+  @ApiPropertyOptional({ description: 'URL de l\'image de preuve de paiement' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  proofUrl?: string;
 }

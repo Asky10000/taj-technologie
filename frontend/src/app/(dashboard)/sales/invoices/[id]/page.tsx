@@ -7,6 +7,8 @@ import { ArrowLeft, Loader2, Receipt, Send, CreditCard, Ban, Building2, Calendar
 import { useInvoice, useRecordPayment, useSendInvoice, useCancelInvoice, useRefundInvoice } from '@/hooks/useSales';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { PaymentProofField } from '@/components/payments/PaymentProofField';
+import { PaymentHistory } from '@/components/payments/PaymentHistory';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SaleLinesTable } from '@/components/sales/SaleLinesTable';
 import { SaleDocumentPrint } from '@/components/sales/SaleDocumentPrint';
@@ -34,6 +36,8 @@ export default function InvoiceDetailPage() {
   const [payOpen, setPayOpen]     = useState(false);
   const [payAmount, setPayAmount] = useState(0);
   const [payMethod, setPayMethod] = useState('BANK_TRANSFER');
+  const [payRef, setPayRef]       = useState('');
+  const [payProof, setPayProof]   = useState<string | undefined>(undefined);
   const [refundOpen, setRefundOpen] = useState(false);
 
   if (isLoading) {
@@ -159,6 +163,11 @@ export default function InvoiceDetailPage() {
 
       <SaleLinesTable lines={invoice.lines ?? []} totalHT={invoice.totalHT} totalTTC={invoice.totalTTC} />
 
+      <div className="bg-card border rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Paiements</h3>
+        <PaymentHistory invoiceId={invoice.id} />
+      </div>
+
       {invoice.notes && (
         <div className="bg-card border rounded-xl p-5">
           <h3 className="text-sm font-semibold text-foreground mb-2">Notes</h3>
@@ -167,32 +176,46 @@ export default function InvoiceDetailPage() {
       )}
 
       {/* Modal paiement */}
-      <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Enregistrer un paiement" size="sm">
+      <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Enregistrer un paiement" size="md">
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            await recordPayment.mutateAsync({ id: invoice.id, amount: payAmount, paymentMethod: payMethod });
+            await recordPayment.mutateAsync({ id: invoice.id, amount: payAmount, paymentMethod: payMethod, paymentReference: payRef || undefined, proofUrl: payProof });
             setPayOpen(false);
+            setPayRef('');
+            setPayProof(undefined);
           }}
           className="space-y-4"
         >
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Montant (FCFA) <span className="text-destructive">*</span></label>
+              <input required type="number" min={1} step={1} max={remaining} value={payAmount}
+                onChange={(e) => setPayAmount(+e.target.value)}
+                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Mode de paiement</label>
+              <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}
+                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                <option value="BANK_TRANSFER">Virement bancaire</option>
+                <option value="MOBILE_MONEY">Mobile Money</option>
+                <option value="CHECK">Chèque</option>
+                <option value="CASH">Espèces</option>
+                <option value="CARD">Carte bancaire</option>
+                <option value="OTHER">Autre</option>
+              </select>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Reste à payer : {formatCurrency(remaining)}</p>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Montant (FCFA) <span className="text-destructive">*</span></label>
-            <input required type="number" min={1} step={1} max={remaining} value={payAmount}
-              onChange={(e) => setPayAmount(+e.target.value)}
+            <label className="text-sm font-medium">Référence</label>
+            <input type="text" value={payRef} onChange={(e) => setPayRef(e.target.value)} placeholder="N° de transaction, chèque…"
               className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-            <p className="text-xs text-muted-foreground">Reste à payer : {formatCurrency(remaining)}</p>
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Mode de paiement</label>
-            <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}
-              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="BANK_TRANSFER">Virement bancaire</option>
-              <option value="CHECK">Chèque</option>
-              <option value="CASH">Espèces</option>
-              <option value="CARD">Carte bancaire</option>
-              <option value="DIRECT_DEBIT">Prélèvement</option>
-            </select>
+            <label className="text-sm font-medium">Preuve de paiement</label>
+            <PaymentProofField value={payProof} onChange={setPayProof} />
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-border">
             <button type="button" onClick={() => setPayOpen(false)} className="h-9 px-4 rounded-md border text-sm hover:bg-accent transition-colors">Annuler</button>

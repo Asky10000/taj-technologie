@@ -170,13 +170,14 @@ export function useReceiveGoods() {
 export function useRecordPurchasePayment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount, reference }: { id: string; amount: number; reference?: string }) =>
-      api.post<ApiResponse<PurchaseOrder>>(`/suppliers/purchase-orders/${id}/payment`, { amount, ...(reference ? { reference } : {}) }).then((r) => r.data.data),
+    mutationFn: ({ id, amount, reference, paymentMethod, proofUrl }: { id: string; amount: number; reference?: string; paymentMethod?: string; proofUrl?: string }) =>
+      api.post<ApiResponse<PurchaseOrder>>(`/suppliers/purchase-orders/${id}/payment`, { amount, reference, paymentMethod, proofUrl }).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: supplierKeys.order(id) });
       qc.invalidateQueries({ queryKey: ['purchase-orders'] });
       qc.invalidateQueries({ queryKey: ['reports'] });
       qc.invalidateQueries({ queryKey: ['supplier-accounts'] });
+      qc.invalidateQueries({ queryKey: ['payments'] });
       toast.success('Paiement enregistré');
     },
     onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),

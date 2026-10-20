@@ -9,6 +9,8 @@ import { Pagination }  from '@/components/ui/Pagination';
 import { EmptyState }  from '@/components/ui/EmptyState';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { Modal }       from '@/components/ui/Modal';
+import { PaymentProofField } from '@/components/payments/PaymentProofField';
+import { PaymentHistory }    from '@/components/payments/PaymentHistory';
 import { formatCurrency, formatDate, formatRelativeTime, cn } from '@/lib/utils';
 import type { InvoiceStatus } from '@/types/sales.types';
 
@@ -29,6 +31,8 @@ export default function InvoicesPage() {
   const [payModal, setPayModal]     = useState<string | null>(null);
   const [payAmount, setPayAmount]   = useState(0);
   const [payMethod, setPayMethod]   = useState('BANK_TRANSFER');
+  const [payRef, setPayRef]         = useState('');
+  const [payProof, setPayProof]     = useState<string | undefined>(undefined);
 
   const { data, isLoading, isFetching } = useInvoices({ page, limit: 20, search: search || undefined, status: status || undefined });
   const recordPayment = useRecordPayment();
@@ -102,7 +106,7 @@ export default function InvoicesPage() {
                         <div className="flex items-center gap-1.5">
                           <Badge variant={sc.variant}>{sc.label}</Badge>
                           {canPay && (
-                            <button onClick={() => { setPayModal(invoice.id); setPayAmount(remaining); }} className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent transition-colors text-muted-foreground" title="Enregistrer un paiement">
+                            <button onClick={() => { setPayModal(invoice.id); setPayAmount(remaining); setPayMethod('BANK_TRANSFER'); setPayRef(''); setPayProof(undefined); }} className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent transition-colors text-muted-foreground" title="Enregistrer un paiement">
                               <CreditCard className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -145,7 +149,7 @@ export default function InvoicesPage() {
                       <div className="flex items-center gap-2">
                         <Badge variant={sc.variant}>{sc.label}</Badge>
                         {canPay && (
-                          <button onClick={() => { setPayModal(invoice.id); setPayAmount(remaining); }} className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent hover:text-foreground transition-colors text-muted-foreground" title="Enregistrer un paiement">
+                          <button onClick={() => { setPayModal(invoice.id); setPayAmount(remaining); setPayMethod('BANK_TRANSFER'); setPayRef(''); setPayProof(undefined); }} className="w-7 h-7 flex items-center justify-center rounded border border-input hover:bg-accent hover:text-foreground transition-colors text-muted-foreground" title="Enregistrer un paiement">
                             <CreditCard className="w-3.5 h-3.5" />
                           </button>
                         )}
@@ -163,35 +167,53 @@ export default function InvoicesPage() {
       </div>
 
       {/* Modal paiement */}
-      <Modal open={!!payModal} onClose={() => setPayModal(null)} title="Enregistrer un paiement" size="sm">
+      <Modal open={!!payModal} onClose={() => setPayModal(null)} title="Enregistrer un paiement" size="md">
+        {payModal && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Paiements précédents</p>
+            <PaymentHistory invoiceId={payModal} />
+          </div>
+        )}
         <form
           onSubmit={async (e) => {
             e.preventDefault();
             if (!payModal) return;
-            await recordPayment.mutateAsync({ id: payModal, amount: payAmount, paymentMethod: payMethod });
+            await recordPayment.mutateAsync({ id: payModal, amount: payAmount, paymentMethod: payMethod, paymentReference: payRef || undefined, proofUrl: payProof });
             setPayModal(null);
           }}
-          className="space-y-4"
+          className="space-y-4 border-t border-border pt-4"
         >
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Montant (FCFA) <span className="text-destructive">*</span></label>
-            <input
-              required type="number" min={1} step={1}
-              value={payAmount}
-              onChange={(e) => setPayAmount(+e.target.value)}
-              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Montant (FCFA) <span className="text-destructive">*</span></label>
+              <input
+                required type="number" min={1} step={1}
+                value={payAmount}
+                onChange={(e) => setPayAmount(+e.target.value)}
+                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Mode de paiement</label>
+              <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}
+                className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                <option value="BANK_TRANSFER">Virement bancaire</option>
+                <option value="MOBILE_MONEY">Mobile Money</option>
+                <option value="CHECK">Chèque</option>
+                <option value="CASH">Espèces</option>
+                <option value="CARD">Carte bancaire</option>
+                <option value="OTHER">Autre</option>
+              </select>
+            </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Mode de paiement</label>
-            <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}
-              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              <option value="BANK_TRANSFER">Virement bancaire</option>
-              <option value="CHECK">Chèque</option>
-              <option value="CASH">Espèces</option>
-              <option value="CARD">Carte bancaire</option>
-              <option value="DIRECT_DEBIT">Prélèvement</option>
-            </select>
+            <label className="text-sm font-medium">Référence</label>
+            <input type="text" value={payRef} onChange={(e) => setPayRef(e.target.value)} placeholder="N° de transaction, chèque…"
+              className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Preuve de paiement</label>
+            <PaymentProofField value={payProof} onChange={setPayProof} />
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-border">
             <button type="button" onClick={() => setPayModal(null)} className="h-9 px-4 rounded-md border text-sm hover:bg-accent transition-colors">Annuler</button>

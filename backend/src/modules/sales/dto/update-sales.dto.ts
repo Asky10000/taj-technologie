@@ -34,6 +34,12 @@ export class RecordPaymentDto {
   @IsString()
   @MaxLength(100)
   paymentReference?: string;
+
+  @ApiPropertyOptional({ description: 'URL de l\'image de preuve de paiement' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  proofUrl?: string;
 }
 
 export class QuerySalesDto {

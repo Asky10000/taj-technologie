@@ -8,6 +8,12 @@ import { TokenPair } from '@/types/api.types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
+/** Construit l'URL d'un fichier servi par l'API (preuves de paiement, etc.). */
+export function mediaUrl(path?: string | null): string {
+  if (!path) return '';
+  return /^https?:\/\//.test(path) ? path : `${BASE_URL}${path}`;
+}
+
 // ── Clés localStorage ────────────────────────────────────────────
 const ACCESS_TOKEN_KEY  = 'taj_access_token';
 const REFRESH_TOKEN_KEY = 'taj_refresh_token';

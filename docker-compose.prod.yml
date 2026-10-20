@@ -64,6 +64,9 @@ services:
       CORS_ORIGINS:       https://${DOMAIN}
       SEED_ADMIN_EMAIL:   ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+    volumes:
+      # Fichiers uploadés (preuves de paiement) — persistés hors du conteneur.
+      - uploads_data:/app/uploads
     depends_on:
       postgres: { condition: service_healthy }
       redis:    { condition: service_healthy }
@@ -121,6 +124,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
   caddy_data:
   caddy_config:
 

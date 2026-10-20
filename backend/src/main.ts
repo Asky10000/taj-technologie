@@ -5,7 +5,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
 import helmet from 'helmet';
 import * as compression from 'compression';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
+import { UPLOAD_DIR, UPLOAD_URL_PREFIX, ensureUploadDir } from './modules/payments/upload.config';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -13,7 +15,7 @@ import { globalValidationPipe } from './common/pipes/validation.pipe';
 import { AdminUserSeeder } from './database/seeders/admin-user.seeder';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
@@ -29,8 +31,12 @@ async function bootstrap() {
   const appVersion = configService.get<string>('app.version');
 
   // Security
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }));
   app.use(compression());
+
+  // Fichiers uploadés (preuves de paiement) servis en statique.
+  ensureUploadDir();
+  app.useStaticAssets(UPLOAD_DIR, { prefix: UPLOAD_URL_PREFIX });
 
   // CORS
   app.enableCors({
