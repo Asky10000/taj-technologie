@@ -136,8 +136,9 @@ export class SuppliersController {
   recordPayment(
     @Param('poId', ParseUUIDPipe) poId: string,
     @Body() dto: RecordPaymentDto,
+    @CurrentUser() u: AuthenticatedUser,
   ) {
-    return this.suppliersService.recordPayment(poId, dto);
+    return this.suppliersService.recordPayment(poId, dto, u.id);
   }
 
   // ──────────────────────────────────────────────────────────────

@@ -11,12 +11,14 @@ import { SalesCalculatorService } from './services/sales-calculator.service';
 import { SalesController } from './sales.controller';
 import { InventoryModule } from '../inventory/inventory.module';
 import { ProjectsModule } from '../projects/projects.module';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Quote, Order, Invoice, SaleLine]),
     InventoryModule,
     ProjectsModule,
+    PaymentsModule,
   ],
   controllers: [SalesController],
   providers: [

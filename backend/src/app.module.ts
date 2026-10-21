@@ -21,6 +21,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { InterventionsModule } from './modules/interventions/interventions.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { InterventionsModule } from './modules/interventions/interventions.modul
     SuppliersModule,
     ReportsModule,
     InterventionsModule,
+    PaymentsModule,
     HealthModule,
   ],
   providers: [

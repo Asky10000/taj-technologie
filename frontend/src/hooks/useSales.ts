@@ -327,13 +327,15 @@ export function useInvoice(id: string) {
 export function useRecordPayment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount, paymentMethod }: { id: string; amount: number; paymentMethod?: string }) =>
-      api.post<ApiResponse<Invoice>>(`/sales/invoices/${id}/payment`, { amount, paymentMethod }).then((r) => r.data.data),
+    mutationFn: ({ id, amount, paymentMethod, paymentReference, proofUrl }: { id: string; amount: number; paymentMethod?: string; paymentReference?: string; proofUrl?: string }) =>
+      api.post<ApiResponse<Invoice>>(`/sales/invoices/${id}/payment`, { amount, paymentMethod, paymentReference, proofUrl }).then((r) => r.data.data),
+
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: salesKeys.invoice(id) });
       qc.invalidateQueries({ queryKey: ['invoices'] });
       qc.invalidateQueries({ queryKey: ['reports'] });
       qc.invalidateQueries({ queryKey: ['customer-accounts'] });
+      qc.invalidateQueries({ queryKey: ['payments'] });
       toast.success('Paiement enregistré');
     },
     onError: (err: any) => {

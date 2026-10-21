@@ -13,6 +13,7 @@ import { InvoiceStatus, OrderStatus } from '../enums/sales.enums';
 import { SalesCalculatorService } from './sales-calculator.service';
 import { paginate } from '../../../common/utils/pagination.util';
 import { PaginatedResult } from '../../../common/interfaces/paginated-result.interface';
+import { PaymentsService } from '../../payments/payments.service';
 
 @Injectable()
 export class InvoicesService {
@@ -23,6 +24,7 @@ export class InvoicesService {
     @InjectRepository(SaleLine) private readonly lineRepo: Repository<SaleLine>,
     private readonly calc: SalesCalculatorService,
     private readonly dataSource: DataSource,
+    private readonly paymentsService: PaymentsService,
   ) {}
 
   async create(dto: CreateInvoiceDto, createdById: string): Promise<Invoice> {
@@ -205,7 +207,7 @@ export class InvoicesService {
     return this.findOne(id);
   }
 
-  async recordPayment(id: string, dto: RecordPaymentDto): Promise<Invoice> {
+  async recordPayment(id: string, dto: RecordPaymentDto, createdById?: string): Promise<Invoice> {
     // Charger sans relations pour éviter cascade-save
     const invoice = await this.invoiceRepo.findOne({ where: { id } });
     if (!invoice) throw new NotFoundException(`Facture ${id} introuvable`);
@@ -231,6 +233,16 @@ export class InvoicesService {
       paymentReference: dto.paymentReference,
       paidAt: dto.paidAt ? new Date(dto.paidAt) : new Date(),
       status: newStatus,
+    });
+
+    await this.paymentsService.record({
+      invoiceId: id,
+      amount: dto.amount,
+      paymentMethod: dto.paymentMethod,
+      reference: dto.paymentReference,
+      paidAt: dto.paidAt ? new Date(dto.paidAt) : new Date(),
+      proofUrl: dto.proofUrl,
+      createdById,
     });
 
     this.logger.log(`Paiement de ${dto.amount} enregistré sur facture ${invoice.number}`);

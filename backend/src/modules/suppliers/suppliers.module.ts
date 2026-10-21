@@ -6,11 +6,13 @@ import { PurchaseOrderLine } from './entities/purchase-order-line.entity';
 import { SuppliersService } from './suppliers.service';
 import { SuppliersController } from './suppliers.controller';
 import { InventoryModule } from '../inventory/inventory.module';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Supplier, PurchaseOrder, PurchaseOrderLine]),
     InventoryModule,
+    PaymentsModule,
   ],
   controllers: [SuppliersController],
   providers: [SuppliersService],

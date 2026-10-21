@@ -20,6 +20,7 @@ import {
 } from './dto/supplier-actions.dto';
 import { PurchaseOrderStatus, PaymentStatus } from './enums/supplier.enums';
 import { InventoryService } from '../inventory/inventory.service';
+import { PaymentsService } from '../payments/payments.service';
 import { MovementType, MovementReason } from '../inventory/enums/inventory.enums';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
@@ -48,6 +49,7 @@ export class SuppliersService {
     private readonly lineRepo: Repository<PurchaseOrderLine>,
     private readonly inventoryService: InventoryService,
     private readonly dataSource: DataSource,
+    private readonly paymentsService: PaymentsService,
   ) {}
 
   // ─────────────────────────────────────────────────────────────
@@ -398,6 +400,7 @@ export class SuppliersService {
   async recordPayment(
     id: string,
     dto: RecordPaymentDto,
+    createdById?: string,
   ): Promise<PurchaseOrder> {
     const po = await this.findOnePurchaseOrder(id);
 
@@ -424,6 +427,17 @@ export class SuppliersService {
     }
 
     await this.poRepo.save(po);
+
+    await this.paymentsService.record({
+      purchaseOrderId: id,
+      amount: dto.amount,
+      paymentMethod: dto.paymentMethod,
+      reference: dto.reference,
+      paidAt: dto.paidAt ? new Date(dto.paidAt) : new Date(),
+      proofUrl: dto.proofUrl,
+      createdById,
+    });
+
     return this.findOnePurchaseOrder(id);
   }
 }
