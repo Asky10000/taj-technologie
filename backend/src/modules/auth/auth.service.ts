@@ -9,7 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, IsNull } from 'typeorm';
+import { Repository, LessThan, IsNull, MoreThan } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User, UserStatus } from '../users/entities/user.entity';
@@ -101,6 +101,31 @@ export class AuthService {
         failureReason:  'Utilisateur inconnu',
       });
       throw new UnauthorizedException('Identifiants invalides');
+    }
+
+    // Verrouillage anti-brute-force : au-delà de N échecs récents sur ce compte,
+    // on bloque temporairement (même avec le bon mot de passe).
+    const FAILED_LIMIT = 5;
+    const WINDOW_MS = 15 * 60 * 1000;
+    const recentFailures = await this.loginHistoryRepo.count({
+      where: {
+        userId: user.id,
+        status: LoginStatus.FAILED,
+        createdAt: MoreThan(new Date(Date.now() - WINDOW_MS)),
+      },
+    });
+    if (recentFailures >= FAILED_LIMIT) {
+      await this.loginHistoryRepo.save({
+        userId:         user.id,
+        status:         LoginStatus.FAILED,
+        emailAttempted: dto.email,
+        ipAddress:      meta?.ipAddress,
+        userAgent:      meta?.userAgent,
+        failureReason:  'Compte temporairement verrouillé (trop de tentatives)',
+      });
+      throw new UnauthorizedException(
+        'Trop de tentatives de connexion. Réessayez dans quelques minutes.',
+      );
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);

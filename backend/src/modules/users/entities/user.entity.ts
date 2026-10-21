@@ -20,7 +20,7 @@ export class User extends BaseEntity {
   email: string;
 
   @Exclude({ toPlainOnly: true })
-  @Column({ name: 'password_hash', type: 'varchar', length: 255 })
+  @Column({ name: 'password_hash', type: 'varchar', length: 255, select: false })
   passwordHash: string;
 
   @ApiProperty({ example: 'Jean' })
