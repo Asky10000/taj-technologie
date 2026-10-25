@@ -51,6 +51,16 @@ export class User extends BaseEntity {
   @Column({ name: 'avatar_url', type: 'varchar', length: 500, nullable: true })
   avatarUrl?: string;
 
+  @ApiProperty({
+    required: false,
+    isArray: true,
+    type: String,
+    description:
+      'Modules accessibles (clés : crm, sales, products, inventory, suppliers, interventions, projects, reports, users). null = aucune restriction.',
+  })
+  @Column({ name: 'allowed_modules', type: 'text', array: true, nullable: true })
+  allowedModules?: string[] | null;
+
   @OneToMany(() => RefreshToken, (token) => token.user, { cascade: true })
   refreshTokens: RefreshToken[];
 

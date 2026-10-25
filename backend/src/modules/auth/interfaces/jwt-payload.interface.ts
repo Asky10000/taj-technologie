@@ -13,6 +13,7 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   role: Role;
+  allowedModules?: string[] | null;
 }
 
 export interface TokenPair {

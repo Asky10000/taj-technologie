@@ -53,6 +53,7 @@ export class UsersService {
       role: dto.role ?? Role.USER,
       status: dto.status ?? UserStatus.ACTIVE,
       avatarUrl: dto.avatarUrl,
+      allowedModules: dto.allowedModules ?? null,
     });
     const saved = await this.userRepo.save(user);
     this.logger.log(`Utilisateur créé : ${saved.email} par ${requester.id}`);

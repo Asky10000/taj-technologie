@@ -11,6 +11,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { Modal }       from '@/components/ui/Modal';
 import { formatRelativeTime, cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
+import { ASSIGNABLE_MODULES, DEFAULT_MODULES_BY_ROLE, moduleKey } from '@/lib/modules';
 import type { User, UserRole } from '@/types/user.types';
 
 const ROLE_CONFIG: Record<UserRole, { label: string; variant: 'default' | 'info' | 'success' | 'danger' | 'warning' | 'outline'; level: number }> = {
@@ -25,10 +26,59 @@ const ROLE_CONFIG: Record<UserRole, { label: string; variant: 'default' | 'info'
 
 const ROLES_OPTIONS: UserRole[] = ['ADMIN', 'MANAGER', 'ACCOUNTANT', 'SALES', 'TECHNICIAN', 'USER'];
 
-const EMPTY_CREATE = { firstName: '', lastName: '', email: '', password: '', role: 'USER' as UserRole };
+const isAdminRole = (r: UserRole) => r === 'ADMIN' || r === 'SUPER_ADMIN';
+
+const EMPTY_CREATE = {
+  firstName: '', lastName: '', email: '', password: '',
+  role: 'USER' as UserRole,
+  allowedModules: [...(DEFAULT_MODULES_BY_ROLE.USER ?? [])] as string[],
+};
 
 function initials(u: User) {
   return `${u.firstName[0] ?? ''}${u.lastName[0] ?? ''}`.toUpperCase();
+}
+
+/** Sélecteur de modules accessibles (cases à cocher). */
+function ModulePicker({
+  value, onChange,
+}: {
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const toggle = (key: string) =>
+    onChange(value.includes(key) ? value.filter((k) => k !== key) : [...value, key]);
+  const allKeys = ASSIGNABLE_MODULES.map((m) => moduleKey(m.href));
+  const allChecked = allKeys.every((k) => value.includes(k));
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">Modules accessibles</label>
+        <button type="button"
+          onClick={() => onChange(allChecked ? [] : allKeys)}
+          className="text-xs text-primary hover:underline">
+          {allChecked ? 'Tout décocher' : 'Tout cocher'}
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 border border-border rounded-lg p-2.5">
+        {ASSIGNABLE_MODULES.map((m) => {
+          const key = moduleKey(m.href);
+          const Icon = m.icon;
+          const checked = value.includes(key);
+          return (
+            <label key={key} className={cn(
+              'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm transition-colors',
+              checked ? 'bg-primary/10 text-foreground' : 'hover:bg-accent text-muted-foreground',
+            )}>
+              <input type="checkbox" checked={checked} onChange={() => toggle(key)}
+                className="accent-primary" />
+              <Icon className="w-3.5 h-3.5" />
+              {m.label}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function UsersPage() {
@@ -42,7 +92,7 @@ export default function UsersPage() {
   const [createForm,  setCreateForm]  = useState(EMPTY_CREATE);
 
   const [editTarget, setEditTarget] = useState<User | null>(null);
-  const [editForm,   setEditForm]   = useState({ firstName: '', lastName: '', role: 'USER' as UserRole });
+  const [editForm,   setEditForm]   = useState({ firstName: '', lastName: '', role: 'USER' as UserRole, allowedModules: [] as string[] });
 
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
@@ -59,11 +109,19 @@ export default function UsersPage() {
 
   const openEdit = (u: User) => {
     setEditTarget(u);
-    setEditForm({ firstName: u.firstName, lastName: u.lastName, role: u.role });
+    setEditForm({
+      firstName: u.firstName,
+      lastName: u.lastName,
+      role: u.role,
+      allowedModules: u.allowedModules ?? [...(DEFAULT_MODULES_BY_ROLE[u.role] ?? [])],
+    });
   };
 
   const myLevel = me ? (ROLE_CONFIG[me.role as UserRole]?.level ?? 0) : 0;
   const canManage = (target: User) => ROLE_CONFIG[target.role]?.level < myLevel;
+  const isAdmin = me?.role === 'ADMIN' || me?.role === 'SUPER_ADMIN';
+  // On ne peut attribuer qu'un rôle de niveau strictement inférieur au sien.
+  const assignableRoles = ROLES_OPTIONS.filter((r) => (ROLE_CONFIG[r]?.level ?? 0) < myLevel);
 
   return (
     <div className="space-y-5">
@@ -83,12 +141,14 @@ export default function UsersPage() {
           </select>
           {isFetching && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
         </div>
-        <button
-          onClick={() => { setCreateForm(EMPTY_CREATE); setCreateModal(true); }}
-          className="flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Nouvel utilisateur
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => { setCreateForm(EMPTY_CREATE); setCreateModal(true); }}
+            className="flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Nouvel utilisateur
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -107,12 +167,12 @@ export default function UsersPage() {
           </div>
         ) : !data?.items.length ? (
           <EmptyState icon={Users} title="Aucun utilisateur" description="Créez le premier utilisateur."
-            action={
+            action={isAdmin ? (
               <button onClick={() => { setCreateForm(EMPTY_CREATE); setCreateModal(true); }}
                 className="flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-white text-sm font-medium">
                 <Plus className="w-4 h-4" /> Nouvel utilisateur
               </button>
-            }
+            ) : undefined}
           />
         ) : (
           <>
@@ -215,7 +275,14 @@ export default function UsersPage() {
       <Modal open={createModal} onClose={() => setCreateModal(false)} title="Nouvel utilisateur" size="sm">
         <form onSubmit={async (e) => {
           e.preventDefault();
-          await createMutation.mutateAsync(createForm);
+          await createMutation.mutateAsync({
+            firstName: createForm.firstName,
+            lastName:  createForm.lastName,
+            email:     createForm.email,
+            password:  createForm.password,
+            role:      createForm.role,
+            allowedModules: isAdminRole(createForm.role) ? null : createForm.allowedModules,
+          });
           setCreateModal(false);
         }} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -248,13 +315,22 @@ export default function UsersPage() {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Rôle</label>
             <select value={createForm.role}
-              onChange={(e) => setCreateForm((p) => ({ ...p, role: e.target.value as UserRole }))}
+              onChange={(e) => {
+                const role = e.target.value as UserRole;
+                setCreateForm((p) => ({ ...p, role, allowedModules: [...(DEFAULT_MODULES_BY_ROLE[role] ?? [])] }));
+              }}
               className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              {ROLES_OPTIONS.map((r) => (
+              {assignableRoles.map((r) => (
                 <option key={r} value={r}>{ROLE_CONFIG[r].label}</option>
               ))}
             </select>
           </div>
+          {isAdminRole(createForm.role) ? (
+            <p className="text-xs text-muted-foreground">Un administrateur a accès à tous les modules.</p>
+          ) : (
+            <ModulePicker value={createForm.allowedModules}
+              onChange={(next) => setCreateForm((p) => ({ ...p, allowedModules: next }))} />
+          )}
           <div className="flex justify-end gap-3 pt-2 border-t border-border">
             <button type="button" onClick={() => setCreateModal(false)} className="h-9 px-4 rounded-md border text-sm hover:bg-accent transition-colors">Annuler</button>
             <button type="submit" disabled={createMutation.isPending}
@@ -271,7 +347,13 @@ export default function UsersPage() {
         <form onSubmit={async (e) => {
           e.preventDefault();
           if (!editTarget) return;
-          await updateMutation.mutateAsync({ id: editTarget.id, ...editForm });
+          await updateMutation.mutateAsync({
+            id: editTarget.id,
+            firstName: editForm.firstName,
+            lastName:  editForm.lastName,
+            role:      editForm.role,
+            allowedModules: isAdminRole(editForm.role) ? null : editForm.allowedModules,
+          });
           setEditTarget(null);
         }} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -291,13 +373,22 @@ export default function UsersPage() {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Rôle</label>
             <select value={editForm.role}
-              onChange={(e) => setEditForm((p) => ({ ...p, role: e.target.value as UserRole }))}
+              onChange={(e) => {
+                const role = e.target.value as UserRole;
+                setEditForm((p) => ({ ...p, role, allowedModules: [...(DEFAULT_MODULES_BY_ROLE[role] ?? [])] }));
+              }}
               className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-              {ROLES_OPTIONS.map((r) => (
+              {assignableRoles.map((r) => (
                 <option key={r} value={r}>{ROLE_CONFIG[r].label}</option>
               ))}
             </select>
           </div>
+          {isAdminRole(editForm.role) ? (
+            <p className="text-xs text-muted-foreground">Un administrateur a accès à tous les modules.</p>
+          ) : (
+            <ModulePicker value={editForm.allowedModules}
+              onChange={(next) => setEditForm((p) => ({ ...p, allowedModules: next }))} />
+          )}
           <div className="flex justify-end gap-3 pt-2 border-t border-border">
             <button type="button" onClick={() => setEditTarget(null)} className="h-9 px-4 rounded-md border text-sm hover:bg-accent transition-colors">Annuler</button>
             <button type="submit" disabled={updateMutation.isPending}

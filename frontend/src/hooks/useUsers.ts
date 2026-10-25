@@ -39,7 +39,7 @@ export function useUsers(params: { page?: number; limit?: number; search?: strin
 export function useCreateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { firstName: string; lastName: string; email: string; password: string; role: UserRole }) =>
+    mutationFn: (payload: { firstName: string; lastName: string; email: string; password: string; role: UserRole; allowedModules?: string[] | null }) =>
       api.post<ApiResponse<User>>('/users', payload).then((r) => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('Utilisateur créé'); },
     onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
@@ -49,7 +49,7 @@ export function useCreateUser() {
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...payload }: { id: string; firstName?: string; lastName?: string; role?: UserRole }) =>
+    mutationFn: ({ id, ...payload }: { id: string; firstName?: string; lastName?: string; role?: UserRole; allowedModules?: string[] | null }) =>
       api.patch<ApiResponse<User>>(`/users/${id}`, payload).then((r) => r.data.data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: userKeys.one(id) });
