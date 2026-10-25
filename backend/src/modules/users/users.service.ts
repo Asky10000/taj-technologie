@@ -148,6 +148,18 @@ export class UsersService {
 
     Object.assign(user, dto);
     const saved = await this.userRepo.save(user);
+
+    // Désactivation : on déconnecte le compte immédiatement en révoquant
+    // tous ses refresh tokens (l'accès est déjà refusé à la prochaine requête
+    // via la vérification du statut dans la stratégie JWT).
+    if (dto.status && dto.status !== UserStatus.ACTIVE) {
+      await this.refreshTokenRepo.update(
+        { userId: id, revokedAt: IsNull() as any },
+        { revokedAt: new Date() },
+      );
+      this.logger.log(`Sessions révoquées pour ${id} (compte désactivé)`);
+    }
+
     this.logger.log(`Utilisateur ${id} mis à jour par ${requester.id}`);
     return saved;
   }
