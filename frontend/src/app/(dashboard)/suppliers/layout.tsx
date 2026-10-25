@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 const TABS = [
   { label: 'Fournisseurs',         href: '/suppliers' },
+  { label: 'À approvisionner',     href: '/suppliers/provisioning' },
   { label: 'Bons de commande',     href: '/suppliers/orders' },
   { label: 'Comptes fournisseurs', href: '/suppliers/accounts' },
 ];
@@ -13,7 +14,7 @@ const TABS = [
 export default function SuppliersLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  const showTabs = !pathname.match(/\/suppliers\/(orders|accounts)\/[^/]+$/);
+  const showTabs = !pathname.match(/\/suppliers\/(orders|accounts|provisioning)\/[^/]+$/);
 
   return (
     <div className="space-y-5">

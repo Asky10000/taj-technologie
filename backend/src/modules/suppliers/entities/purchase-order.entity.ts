@@ -6,6 +6,7 @@ import { BaseEntity } from '../../../database/entities/base.entity';
 import { User } from '../../users/entities/user.entity';
 import { Supplier } from './supplier.entity';
 import { PurchaseOrderLine } from './purchase-order-line.entity';
+import { Order } from '../../sales/entities/order.entity';
 import { PurchaseOrderStatus, PaymentStatus } from '../enums/supplier.enums';
 
 @Entity({ name: 'purchase_orders' })
@@ -30,6 +31,17 @@ export class PurchaseOrder extends BaseEntity {
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by_id' })
   createdBy?: User;
+
+  @ApiProperty({
+    required: false,
+    description: 'Commande client à l\'origine de cet approvisionnement',
+  })
+  @Column({ name: 'source_order_id', type: 'uuid', nullable: true })
+  sourceOrderId?: string;
+
+  @ManyToOne(() => Order, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'source_order_id' })
+  sourceOrder?: Order;
 
   @ApiProperty({ enum: PurchaseOrderStatus })
   @Column({ type: 'enum', enum: PurchaseOrderStatus, default: PurchaseOrderStatus.DRAFT })

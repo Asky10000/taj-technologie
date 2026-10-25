@@ -5,10 +5,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Brackets } from 'typeorm';
+import { Repository, DataSource, Brackets, Not } from 'typeorm';
 import { Supplier } from './entities/supplier.entity';
 import { PurchaseOrder } from './entities/purchase-order.entity';
 import { PurchaseOrderLine } from './entities/purchase-order-line.entity';
+import { Order } from '../sales/entities/order.entity';
+import { OrderStatus } from '../sales/enums/sales.enums';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import {
   UpdateSupplierDto,
@@ -17,6 +19,7 @@ import {
   UpdatePurchaseOrderStatusDto,
   ReceiveGoodsDto,
   RecordPaymentDto,
+  GeneratePurchaseOrdersDto,
 } from './dto/supplier-actions.dto';
 import { PurchaseOrderStatus, PaymentStatus } from './enums/supplier.enums';
 import { InventoryService } from '../inventory/inventory.service';
@@ -47,6 +50,8 @@ export class SuppliersService {
     private readonly poRepo: Repository<PurchaseOrder>,
     @InjectRepository(PurchaseOrderLine)
     private readonly lineRepo: Repository<PurchaseOrderLine>,
+    @InjectRepository(Order)
+    private readonly orderRepo: Repository<Order>,
     private readonly inventoryService: InventoryService,
     private readonly dataSource: DataSource,
     private readonly paymentsService: PaymentsService,
@@ -228,6 +233,140 @@ export class SuppliersService {
     return this.findOnePurchaseOrder(saved.id);
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // APPROVISIONNEMENT — commande client → bons de commande fournisseur
+  // ─────────────────────────────────────────────────────────────
+
+  /**
+   * Liste les commandes clients approvisionnables (non annulées), avec le
+   * nombre de bons de commande fournisseur déjà générés pour chacune.
+   */
+  async listOrdersToProvision(): Promise<
+    Array<Order & { purchaseOrderCount: number }>
+  > {
+    const orders = await this.orderRepo.find({
+      where: { status: Not(OrderStatus.CANCELLED) },
+      relations: ['customer'],
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
+    if (!orders.length) return [];
+
+    const counts = await this.poRepo
+      .createQueryBuilder('po')
+      .select('po.source_order_id', 'orderId')
+      .addSelect('COUNT(*)', 'count')
+      .where('po.source_order_id IN (:...ids)', { ids: orders.map((o) => o.id) })
+      .groupBy('po.source_order_id')
+      .getRawMany<{ orderId: string; count: string }>();
+
+    const countMap = new Map(counts.map((c) => [c.orderId, Number(c.count)]));
+    return orders.map((o) =>
+      Object.assign(o, { purchaseOrderCount: countMap.get(o.id) ?? 0 }),
+    );
+  }
+
+  /**
+   * Détail d'une commande client pour l'écran d'approvisionnement :
+   * lignes (avec produit et coût) + bons de commande déjà générés.
+   */
+  async getOrderForProvisioning(orderId: string): Promise<{
+    order: Order;
+    purchaseOrders: PurchaseOrder[];
+  }> {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['customer', 'lines', 'lines.product'],
+      order: { lines: { sortOrder: 'ASC' } },
+    });
+    if (!order) throw new NotFoundException(`Commande ${orderId} introuvable`);
+
+    const purchaseOrders = await this.poRepo.find({
+      where: { sourceOrderId: orderId },
+      relations: ['supplier', 'lines'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return { order, purchaseOrders };
+  }
+
+  /**
+   * Génère un bon de commande fournisseur par fournisseur distinct, à partir
+   * de l'attribution d'un fournisseur par ligne de la commande client.
+   * Les lignes non attribuées sont ignorées. Le prix d'achat est pré-rempli
+   * avec le coût du produit (modifiable via le DTO).
+   */
+  async generatePurchaseOrders(
+    orderId: string,
+    dto: GeneratePurchaseOrdersDto,
+    currentUser: AuthenticatedUser,
+  ): Promise<PurchaseOrder[]> {
+    if (!dto.assignments?.length) {
+      throw new BadRequestException('Aucune ligne attribuée à un fournisseur');
+    }
+
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['lines', 'lines.product'],
+    });
+    if (!order) throw new NotFoundException(`Commande ${orderId} introuvable`);
+
+    const lineMap = new Map((order.lines ?? []).map((l) => [l.id, l]));
+
+    // Groupe les attributions par fournisseur
+    const bySupplier = new Map<string, typeof dto.assignments>();
+    for (const a of dto.assignments) {
+      const line = lineMap.get(a.lineId);
+      if (!line) {
+        throw new BadRequestException(
+          `La ligne ${a.lineId} n'appartient pas à cette commande`,
+        );
+      }
+      const group = bySupplier.get(a.supplierId) ?? [];
+      group.push(a);
+      bySupplier.set(a.supplierId, group);
+    }
+
+    // Valide l'existence de chaque fournisseur avant toute écriture
+    for (const supplierId of bySupplier.keys()) {
+      await this.findOneSupplier(supplierId);
+    }
+
+    const toCreate: PurchaseOrder[] = [];
+    for (const [supplierId, assignments] of bySupplier) {
+      const po = this.poRepo.create({
+        supplierId,
+        createdById: currentUser.id,
+        sourceOrderId: order.id,
+        status: PurchaseOrderStatus.DRAFT,
+        notes: `Approvisionnement de la commande ${order.number}`,
+        lines: assignments.map((a) => {
+          const line = lineMap.get(a.lineId)!;
+          const unitPrice =
+            a.unitPrice ??
+            (line.product?.costPrice != null
+              ? Number(line.product.costPrice)
+              : Number(line.unitPrice));
+          return this.lineRepo.create({
+            productId: line.productId,
+            designation: line.description,
+            quantity: a.quantity ?? Number(line.quantity),
+            unitPrice: Number.isFinite(unitPrice) ? unitPrice : 0,
+            taxRate: Number(line.taxRate) || 20,
+            discountPercent: 0,
+          });
+        }),
+      });
+      toCreate.push(po);
+    }
+
+    const saved = await this.poRepo.save(toCreate);
+    this.logger.log(
+      `Approvisionnement commande ${order.number} : ${saved.length} bon(s) de commande généré(s)`,
+    );
+    return Promise.all(saved.map((po) => this.findOnePurchaseOrder(po.id)));
+  }
+
   async findAllPurchaseOrders(
     query: PaginationDto & { supplierId?: string; status?: PurchaseOrderStatus },
   ): Promise<PaginatedResult<PurchaseOrder>> {
@@ -257,7 +396,7 @@ export class SuppliersService {
   async findOnePurchaseOrder(id: string): Promise<PurchaseOrder> {
     const po = await this.poRepo.findOne({
       where: { id },
-      relations: ['supplier', 'createdBy', 'lines', 'lines.product'],
+      relations: ['supplier', 'createdBy', 'lines', 'lines.product', 'sourceOrder'],
     });
     if (!po) throw new NotFoundException(`Commande ${id} introuvable`);
     return po;
