@@ -44,6 +44,7 @@ export interface AuthUser {
   lastName: string;
   role: Role;
   status: string;
+  allowedModules?: string[] | null;
 }
 
 export interface TokenPair {

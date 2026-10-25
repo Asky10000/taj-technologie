@@ -89,7 +89,7 @@ export class AuthService {
   ): Promise<{ user: Partial<User>; tokens: TokenPair }> {
     const user = await this.userRepo.findOne({
       where: { email: dto.email },
-      select: ['id', 'email', 'passwordHash', 'firstName', 'lastName', 'role', 'status'],
+      select: ['id', 'email', 'passwordHash', 'firstName', 'lastName', 'role', 'status', 'allowedModules'],
     });
 
     if (!user) {
@@ -320,12 +320,17 @@ export class AuthService {
   async validateUserById(id: string): Promise<AuthenticatedUser> {
     const user = await this.userRepo.findOne({
       where: { id },
-      select: ['id', 'email', 'role', 'status'],
+      select: ['id', 'email', 'role', 'status', 'allowedModules'],
     });
     if (!user || user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('Utilisateur non autorisé');
     }
-    return { id: user.id, email: user.email, role: user.role };
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      allowedModules: user.allowedModules,
+    };
   }
 
   /**

@@ -16,6 +16,7 @@ export interface User {
   email: string;
   role: UserRole;
   status: UserStatus;
+  allowedModules?: string[] | null;
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;

@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { ModuleAccessGuard } from './guards/module-access.guard';
 import { User } from '../users/entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { LoginHistory } from './entities/login-history.entity';
@@ -37,6 +38,7 @@ import { LoginHistory } from './entities/login-history.entity';
     // Guards globaux : toute route est protégée par défaut, sauf @Public().
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: ModuleAccessGuard },
   ],
   exports: [AuthService, JwtModule, TypeOrmModule],
 })

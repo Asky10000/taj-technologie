@@ -7,6 +7,7 @@ import {
   MaxLength,
   Matches,
   IsEnum,
+  IsArray,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Role } from '../../auth/enums/role.enum';
@@ -61,4 +62,16 @@ export class CreateUserDto {
   @IsString()
   @MaxLength(500)
   avatarUrl?: string;
+
+  @ApiPropertyOptional({
+    isArray: true,
+    type: String,
+    description:
+      'Modules accessibles (crm, sales, products, inventory, suppliers, interventions, projects, reports, users). Omis = aucune restriction.',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(40, { each: true })
+  allowedModules?: string[];
 }
