@@ -5,13 +5,18 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, User, Shield, CheckCircle, XCircle,
-  Monitor, Smartphone, Globe, Loader2, Clock,
+  Monitor, Smartphone, Globe, Loader2, Clock, UserX, UserCheck,
 } from 'lucide-react';
-import { useUser, useUserLoginHistory } from '@/hooks/useUsers';
+import { useUser, useUserLoginHistory, useToggleUserStatus } from '@/hooks/useUsers';
+import { useAuthStore } from '@/stores/auth.store';
 import { Badge } from '@/components/ui/Badge';
 import { Pagination } from '@/components/ui/Pagination';
 import { formatDate, formatRelativeTime, cn, getInitials } from '@/lib/utils';
 import type { UserRole, LoginHistory } from '@/types/user.types';
+
+const ROLE_LEVEL: Record<UserRole, number> = {
+  SUPER_ADMIN: 100, ADMIN: 90, MANAGER: 70, ACCOUNTANT: 60, SALES: 50, TECHNICIAN: 50, USER: 10,
+};
 
 const ROLE_CONFIG: Record<UserRole, { label: string; variant: 'default' | 'info' | 'success' | 'danger' | 'warning' | 'outline' }> = {
   SUPER_ADMIN: { label: 'Super Admin', variant: 'danger'  },
@@ -95,6 +100,8 @@ function LoginRow({ entry }: { entry: LoginHistory }) {
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [historyPage, setHistoryPage] = useState(1);
+  const me = useAuthStore((s) => s.user);
+  const toggleStatus = useToggleUserStatus();
 
   const { data: user, isLoading: userLoading } = useUser(id);
   const { data: history, isLoading: historyLoading } = useUserLoginHistory(id, historyPage);
@@ -116,15 +123,28 @@ export default function UserDetailPage() {
   }
 
   const rc = ROLE_CONFIG[user.role as UserRole];
+  const active = user.status === 'ACTIVE';
+  const myLevel = me ? (ROLE_LEVEL[me.role as UserRole] ?? 0) : 0;
+  const canManage = me?.id !== user.id && (ROLE_LEVEL[user.role] ?? 0) < myLevel;
+
+  const onToggle = () => {
+    const next = active ? 'INACTIVE' : 'ACTIVE';
+    const msg = active
+      ? `Désactiver le compte de ${user.firstName} ${user.lastName} ? Ses sessions seront fermées immédiatement.`
+      : `Réactiver le compte de ${user.firstName} ${user.lastName} ?`;
+    if (window.confirm(msg)) {
+      toggleStatus.mutate({ id: user.id, status: next });
+    }
+  };
 
   return (
     <div className="max-w-4xl space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/users" className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors flex-shrink-0">
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
+      <div className="flex items-center gap-3 justify-between">
         <div className="flex items-center gap-3 min-w-0">
+          <Link href="/users" className="w-8 h-8 flex items-center justify-center rounded-md border border-input hover:bg-accent transition-colors flex-shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <span className="text-sm font-bold text-primary">
               {getInitials(user.firstName, user.lastName)}
@@ -134,9 +154,28 @@ export default function UserDetailPage() {
             <h2 className="text-base font-semibold text-foreground truncate">
               {user.firstName} {user.lastName}
             </h2>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
           </div>
         </div>
+
+        {canManage && (
+          <button
+            onClick={onToggle}
+            disabled={toggleStatus.isPending}
+            className={cn(
+              'flex items-center gap-2 h-9 px-3.5 rounded-md border text-sm font-medium transition-colors disabled:opacity-50 flex-shrink-0',
+              active
+                ? 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                : 'border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10',
+            )}
+            title={active ? 'Désactiver et déconnecter immédiatement' : 'Réactiver le compte'}
+          >
+            {toggleStatus.isPending
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+            {active ? 'Désactiver le compte' : 'Réactiver le compte'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

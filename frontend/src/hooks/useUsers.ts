@@ -85,11 +85,11 @@ export function useUserLoginHistory(userId: string, page = 1) {
   return useQuery({
     queryKey: ['users', userId, 'login-history', page],
     queryFn: async () => {
-      const { data } = await api.get<{ items: LoginHistory[]; total: number; page: number; totalPages: number }>(
+      const { data } = await api.get<ApiResponse<{ items: LoginHistory[]; total: number; page: number; totalPages: number }>>(
         `/users/${userId}/login-history`,
         { params: { page, limit: 20 } },
       );
-      return data;
+      return data.data;
     },
     enabled: !!userId,
   });
