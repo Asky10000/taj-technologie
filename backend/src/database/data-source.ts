@@ -22,8 +22,8 @@ export const dataSourceOptions: DataSourceOptions = {
   synchronize: false,
   logging: process.env.DB_LOGGING === 'true',
   ssl:
-    process.env.NODE_ENV === 'production'
-      ? { rejectUnauthorized: false }
+    process.env.DB_SSL === 'true'
+      ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
       : false,
 };
 

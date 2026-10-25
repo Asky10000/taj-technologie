@@ -2,6 +2,7 @@ import {
   Entity, Column, ManyToOne, JoinColumn, Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { BaseEntity } from '../../../database/entities/base.entity';
 import { Product } from '../../products/entities/product.entity';
 import { PurchaseOrder } from './purchase-order.entity';
@@ -52,19 +53,23 @@ export class PurchaseOrderLine extends BaseEntity {
   @Column({ name: 'discount_percent', type: 'numeric', precision: 5, scale: 2, default: 0 })
   discountPercent: number;
 
+  @Expose()
   get subtotalHT(): number {
     const base = Number(this.quantity) * Number(this.unitPrice);
     return Math.round(base * (1 - Number(this.discountPercent) / 100) * 100) / 100;
   }
 
+  @Expose()
   get taxAmount(): number {
     return Math.round(this.subtotalHT * (Number(this.taxRate) / 100) * 100) / 100;
   }
 
+  @Expose()
   get totalTTC(): number {
     return Math.round((this.subtotalHT + this.taxAmount) * 100) / 100;
   }
 
+  @Expose()
   get remainingQuantity(): number {
     return Math.max(0, Number(this.quantity) - Number(this.receivedQuantity));
   }
