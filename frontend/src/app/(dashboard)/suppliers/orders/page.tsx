@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { ShoppingBag, Plus, Loader2, Truck, CreditCard } from 'lucide-react';
 import {
   usePurchaseOrders, useCreatePurchaseOrder, useSuppliers,
@@ -148,7 +149,7 @@ export default function PurchaseOrdersPage() {
                 const canPay     = ['CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED'].includes(order.status) && remaining > 0;
                 return (
                   <div key={order.id} className="grid grid-cols-[auto_minmax(0,1fr)_150px_130px_130px_120px_minmax(170px,auto)] px-5 py-3.5 items-center hover:bg-accent/30 transition-colors divide-x divide-border [&>*]:px-3 [&>*:first-child]:pl-0">
-                    <span className="text-sm font-medium text-primary font-mono">{order.code}</span>
+                    <Link href={`/suppliers/orders/${order.id}`} className="text-sm font-medium text-primary font-mono hover:underline" title="Voir le détail">{order.code}</Link>
                     <div>
                       <p className="text-sm text-foreground">{order.supplier?.name ?? '—'}</p>
                       <p className="text-xs text-muted-foreground">{formatRelativeTime(order.createdAt)}</p>
