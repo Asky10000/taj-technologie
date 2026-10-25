@@ -2,6 +2,7 @@ import {
   Entity, Column, Index, ManyToOne, OneToMany, JoinColumn, BeforeInsert,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { BaseEntity } from '../../../database/entities/base.entity';
 import { User } from '../../users/entities/user.entity';
 import { Supplier } from './supplier.entity';
@@ -72,21 +73,29 @@ export class PurchaseOrder extends BaseEntity {
 
   // ── Getters calculés ─────────────────────────────────────────
 
+  @ApiProperty({ description: 'Total HT (frais de port inclus)' })
+  @Expose()
   get totalHT(): number {
     if (!this.lines?.length) return 0;
     const sum = this.lines.reduce((s, l) => s + l.subtotalHT, 0);
     return Math.round((sum + Number(this.shippingCost)) * 100) / 100;
   }
 
+  @ApiProperty({ description: 'Total TVA' })
+  @Expose()
   get totalTVA(): number {
     if (!this.lines?.length) return 0;
     return Math.round(this.lines.reduce((s, l) => s + l.taxAmount, 0) * 100) / 100;
   }
 
+  @ApiProperty({ description: 'Total TTC' })
+  @Expose()
   get totalTTC(): number {
     return Math.round((this.totalHT + this.totalTVA) * 100) / 100;
   }
 
+  @ApiProperty({ description: 'Reste à payer' })
+  @Expose()
   get remainingAmount(): number {
     return Math.max(0, Math.round((this.totalTTC - Number(this.paidAmount)) * 100) / 100);
   }
