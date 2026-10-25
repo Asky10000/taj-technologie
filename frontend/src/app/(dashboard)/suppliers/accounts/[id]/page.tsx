@@ -107,7 +107,9 @@ export default function SupplierAccountStatementPage() {
                   return (
                     <tr key={po.id} className="hover:bg-accent/30 transition-colors">
                       <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{formatDate(po.createdAt)}</td>
-                      <td className="px-5 py-3 font-medium text-foreground">{po.code}</td>
+                      <td className="px-5 py-3 font-medium">
+                        <Link href={`/suppliers/orders/${po.id}`} className="text-primary hover:underline font-mono" title="Voir le détail">{po.code}</Link>
+                      </td>
                       <td className="px-5 py-3 text-right tabular-nums">{formatCurrency(Number(po.totalTTC))}</td>
                       <td className="px-5 py-3 text-right tabular-nums text-emerald-500">{formatCurrency(Number(po.paidAmount))}</td>
                       <td className={cn('px-5 py-3 text-right font-medium tabular-nums', remaining > 0 ? 'text-amber-400' : 'text-emerald-500')}>{formatCurrency(remaining)}</td>

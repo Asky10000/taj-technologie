@@ -127,7 +127,7 @@ export default function OrderProvisioningPage({
           </p>
           <div className="flex flex-wrap gap-2">
             {generatedPOs.map((po) => (
-              <Link key={po.id} href="/suppliers/orders"
+              <Link key={po.id} href={`/suppliers/orders/${po.id}`}
                 className="inline-flex items-center gap-1.5 text-xs bg-card border rounded-md px-2.5 py-1 hover:bg-accent transition-colors">
                 <span className="font-mono font-medium text-primary">{po.code}</span>
                 <span className="text-muted-foreground">· {po.supplier?.name}</span>

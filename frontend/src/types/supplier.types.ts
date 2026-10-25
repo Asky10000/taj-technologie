@@ -25,12 +25,16 @@ export interface Supplier {
 export interface PurchaseOrderLine {
   id?: string;
   productId?: string;
-  product?: { name: string; reference: string };
+  product?: { name: string; reference?: string; sku?: string };
   designation: string;
   quantity: number;
   receivedQuantity: number;
   unitPrice: number;
   taxRate: number;
+  discountPercent?: number;
+  subtotalHT?: number;
+  taxAmount?: number;
+  totalTTC?: number;
 }
 
 export interface PurchaseOrder {
@@ -49,6 +53,7 @@ export interface PurchaseOrder {
   receivedAt?: string;
   notes?: string;
   sourceOrderId?: string;
+  sourceOrder?: { id: string; number: string };
   createdAt: string;
   updatedAt: string;
 }
