@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
 import { Providers } from '@/components/providers';
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -9,7 +10,24 @@ export const metadata: Metadata = {
     template: '%s | TAJ Technologie',
   },
   description: 'ERP & CRM — Gestion informatique professionnelle',
-  icons: { icon: '/favicon.ico' },
+  applicationName: 'TAJ Technologie',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'TAJ Technologie',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0b2540',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -29,6 +47,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <ServiceWorkerRegister />
         <Providers>
           {children}
           <Toaster
