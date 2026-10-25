@@ -144,6 +144,28 @@ a, button, [role="button"] {
               border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
+/* ── Responsive mobile ───────────────────────────────────────────── */
+/* Pas de débordement horizontal parasite de la page entière. */
+html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+
+@media (max-width: 767px) {
+  /* Les "tableaux" en grille des listes débordent la largeur d'un téléphone.
+     Au lieu d'être coupés (overflow-hidden), on les rend défilables
+     horizontalement : tout le contenu reste accessible. */
+  .bg-card.overflow-hidden { overflow-x: auto; }
+  /* Les grilles de liste gardent une largeur mini lisible et défilent. */
+  .bg-card.overflow-hidden > .grid,
+  .bg-card.overflow-hidden > .divide-y > .grid {
+    min-width: 640px;
+  }
+}
+
+/* Barre de navigation (dock) : respecte la zone sûre des téléphones à encoche. */
+@supports (padding: max(0px)) {
+  .dock-safe { bottom: max(1rem, env(safe-area-inset-bottom)); }
+}
+
 /* Respect de la préférence de mouvement réduit */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
