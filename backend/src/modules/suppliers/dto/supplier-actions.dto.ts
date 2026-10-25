@@ -154,6 +154,50 @@ export class ReceiveGoodsDto {
   receptionNotes?: string;
 }
 
+// ── Approvisionnement (commande client → bons de commande) ──────
+
+export class ProvisionLineAssignmentDto {
+  @ApiProperty({ description: 'UUID de la ligne de la commande client' })
+  @IsUUID()
+  lineId: string;
+
+  @ApiProperty({ description: 'UUID du fournisseur attribué à cette ligne' })
+  @IsUUID()
+  supplierId: string;
+
+  @ApiPropertyOptional({
+    description: 'Prix unitaire d\'achat HT (par défaut : coût du produit)',
+    minimum: 0,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  unitPrice?: number;
+
+  @ApiPropertyOptional({
+    description: 'Quantité à commander (par défaut : quantité de la ligne)',
+    minimum: 0.001,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.001)
+  quantity?: number;
+}
+
+export class GeneratePurchaseOrdersDto {
+  @ApiProperty({
+    type: [ProvisionLineAssignmentDto],
+    description:
+      'Attribution d\'un fournisseur par ligne. Les lignes non attribuées sont ignorées.',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProvisionLineAssignmentDto)
+  assignments: ProvisionLineAssignmentDto[];
+}
+
 // ── Paiement ────────────────────────────────────────────────────
 
 export class RecordPaymentDto {

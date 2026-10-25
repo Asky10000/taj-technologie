@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import type { Supplier, PurchaseOrder, PurchaseOrderStatus, PurchaseOrderLine } from '@/types/supplier.types';
+import type {
+  Supplier, PurchaseOrder, PurchaseOrderStatus, PurchaseOrderLine,
+  ProvisionOrder, OrderProvisioningDetail, ProvisionAssignment,
+} from '@/types/supplier.types';
 import type { ApiResponse } from '@/types/api.types';
 
 /* ── Type paginé plat ──────────────────────────────────────────── */
@@ -162,6 +165,45 @@ export function useReceiveGoods() {
       qc.invalidateQueries({ queryKey: ['reports'] });
       qc.invalidateQueries({ queryKey: ['supplier-accounts'] });
       toast.success('Réception enregistrée — stock mis à jour');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
+  });
+}
+
+// ── Approvisionnement (commande client → bons de commande) ────────
+
+export function useOrdersToProvision() {
+  return useQuery({
+    queryKey: ['provisioning', 'orders'],
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<ProvisionOrder[]>>('/suppliers/provisioning/orders');
+      return data.data ?? [];
+    },
+  });
+}
+
+export function useOrderProvisioning(orderId: string) {
+  return useQuery({
+    queryKey: ['provisioning', 'orders', orderId],
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<OrderProvisioningDetail>>(`/suppliers/provisioning/orders/${orderId}`);
+      return data.data;
+    },
+    enabled: !!orderId,
+  });
+}
+
+export function useGeneratePurchaseOrders() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, assignments }: { orderId: string; assignments: ProvisionAssignment[] }) =>
+      api.post<ApiResponse<PurchaseOrder[]>>(`/suppliers/provisioning/orders/${orderId}/generate`, { assignments }).then((r) => r.data.data),
+    onSuccess: (_, { orderId }) => {
+      qc.invalidateQueries({ queryKey: ['provisioning'] });
+      qc.invalidateQueries({ queryKey: ['provisioning', 'orders', orderId] });
+      qc.invalidateQueries({ queryKey: ['purchase-orders'] });
+      qc.invalidateQueries({ queryKey: ['supplier-accounts'] });
+      toast.success('Bons de commande générés');
     },
     onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Erreur'),
   });

@@ -48,6 +48,48 @@ export interface PurchaseOrder {
   expectedDeliveryDate?: string;
   receivedAt?: string;
   notes?: string;
+  sourceOrderId?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/* ── Approvisionnement : commande client → bons de commande ─────── */
+
+export interface ProvisionOrderLine {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  taxRate: number;
+  productId?: string;
+  product?: {
+    id: string;
+    name: string;
+    sku: string;
+    costPrice: number;
+    sellingPrice: number;
+  };
+}
+
+export interface ProvisionOrder {
+  id: string;
+  number: string;
+  status: string;
+  createdAt: string;
+  totalTTC: number;
+  customer?: { id: string; name?: string };
+  lines?: ProvisionOrderLine[];
+  purchaseOrderCount?: number;
+}
+
+export interface OrderProvisioningDetail {
+  order: ProvisionOrder;
+  purchaseOrders: PurchaseOrder[];
+}
+
+export interface ProvisionAssignment {
+  lineId: string;
+  supplierId: string;
+  unitPrice?: number;
+  quantity?: number;
 }

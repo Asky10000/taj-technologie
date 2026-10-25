@@ -14,6 +14,7 @@ import {
   UpdatePurchaseOrderStatusDto,
   ReceiveGoodsDto,
   RecordPaymentDto,
+  GeneratePurchaseOrdersDto,
 } from './dto/supplier-actions.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -139,6 +140,43 @@ export class SuppliersController {
     @CurrentUser() u: AuthenticatedUser,
   ) {
     return this.suppliersService.recordPayment(poId, dto, u.id);
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // APPROVISIONNEMENT — commandes clients à approvisionner
+  // ──────────────────────────────────────────────────────────────
+
+  @Get('provisioning/orders')
+  @Roles(Role.MANAGER)
+  @ApiOperation({ summary: 'Lister les commandes clients à approvisionner' })
+  listOrdersToProvision() {
+    return this.suppliersService.listOrdersToProvision();
+  }
+
+  @Get('provisioning/orders/:orderId')
+  @Roles(Role.MANAGER)
+  @ApiOperation({
+    summary: 'Détail d\'une commande client (attribution fournisseur par ligne)',
+  })
+  getOrderForProvisioning(
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+  ) {
+    return this.suppliersService.getOrderForProvisioning(orderId);
+  }
+
+  @Post('provisioning/orders/:orderId/generate')
+  @Roles(Role.MANAGER)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary:
+      'Générer les bons de commande fournisseur (un par fournisseur attribué)',
+  })
+  generatePurchaseOrders(
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+    @Body() dto: GeneratePurchaseOrdersDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.suppliersService.generatePurchaseOrders(orderId, dto, user);
   }
 
   // ──────────────────────────────────────────────────────────────
