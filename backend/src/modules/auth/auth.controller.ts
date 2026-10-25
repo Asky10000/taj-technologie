@@ -25,6 +25,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { Public } from './decorators/public.decorator';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from './enums/role.enum';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthenticatedUser } from './interfaces/jwt-payload.interface';
 
@@ -33,15 +35,17 @@ import { AuthenticatedUser } from './interfaces/jwt-payload.interface';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  // Création de compte réservée aux administrateurs (pas d'auto-inscription
+  // publique). Le rôle demandé n'est pris en compte que pour un ADMIN/SUPER_ADMIN.
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Créer un nouveau compte' })
+  @ApiOperation({ summary: 'Créer un compte (réservé aux administrateurs)' })
   @ApiResponse({ status: 201, description: 'Compte créé avec succès' })
   @ApiResponse({ status: 409, description: 'Email déjà utilisé' })
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  register(@Body() dto: RegisterDto, @CurrentUser() u: AuthenticatedUser) {
+    return this.authService.register(dto, u.role);
   }
 
   @Public()

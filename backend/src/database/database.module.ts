@@ -35,7 +35,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         // distante ; false pour le conteneur Postgres interne, même en prod).
         ssl:
           process.env.DB_SSL === 'true'
-            ? { rejectUnauthorized: false }
+            ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
             : false,
         retryAttempts: 5,
         retryDelay: 3000,
