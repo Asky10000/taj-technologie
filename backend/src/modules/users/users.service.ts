@@ -40,10 +40,36 @@ export class UsersService {
   async create(dto: CreateUserDto, requester: { id: string; role: Role }): Promise<User> {
     this.ensureCanAssignRole(requester.role, dto.role ?? Role.USER);
 
-    const exists = await this.userRepo.findOne({ where: { email: dto.email } });
-    if (exists) throw new ConflictException('Email déjà utilisé');
-
     const passwordHash = await bcrypt.hash(dto.password, this.saltRounds);
+
+    // On inclut les comptes supprimés (soft-delete) : l'email reste unique en
+    // base, donc un INSERT avec un email déjà utilisé par un compte supprimé
+    // échouerait (erreur 500). On réactive alors ce compte avec les nouvelles
+    // informations plutôt que de bloquer la création.
+    const existing = await this.userRepo.findOne({
+      where: { email: dto.email },
+      withDeleted: true,
+    });
+    if (existing) {
+      if (!existing.deletedAt) {
+        throw new ConflictException('Email déjà utilisé');
+      }
+      existing.deletedAt = null;
+      existing.passwordHash = passwordHash;
+      existing.firstName = dto.firstName;
+      existing.lastName = dto.lastName;
+      existing.phone = dto.phone;
+      existing.role = dto.role ?? Role.USER;
+      existing.status = dto.status ?? UserStatus.ACTIVE;
+      existing.avatarUrl = dto.avatarUrl;
+      existing.allowedModules = dto.allowedModules ?? null;
+      const reactivated = await this.userRepo.save(existing);
+      this.logger.log(
+        `Utilisateur réactivé : ${reactivated.email} par ${requester.id}`,
+      );
+      return reactivated;
+    }
+
     const user = this.userRepo.create({
       email: dto.email,
       passwordHash,
