@@ -1,0 +1,13 @@
+# The deployable site is the Next.js app in frontend/ (the NestJS API in backend/
+# is deployed separately). Netlify's Next.js runtime is applied automatically.
+[build]
+  base = "frontend"
+  # Install explicitly so the build also works where no install step runs first
+  # (e.g. CLI deploys). On regular Netlify builds this is a fast no-op re-check.
+  command = "npm install && npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Matches the project's CI/Docker Node major (20), bumped to the current LTS line.
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
